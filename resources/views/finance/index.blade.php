@@ -127,12 +127,7 @@
                     <td style="font-weight:700">{{ number_format($ins->price, 2) }}</td>
                     <td style="font-size:.82rem;color:var(--gray-500)">{{ $ins->completed_at?->format('Y-m-d') ?? $ins->created_at->format('Y-m-d') }}</td>
                     <td>
-                        <form method="POST" action="{{ route('finance.markPaid', $ins->id) }}" style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
-                            @csrf
-                            <input type="number" name="discount" value="0" min="0" step="0.01" class="form-control" style="width:65px;padding:4px 6px;font-size:.8rem" placeholder="{{ $lang === 'ar' ? 'خصم' : 'Disc' }}">
-                            <input type="text" name="payment_note" class="form-control" style="width:120px;padding:4px 6px;font-size:.8rem" placeholder="{{ $lang === 'ar' ? 'ملاحظة...' : 'Note...' }}">
-                            <button type="submit" class="btn btn-success btn-sm">💵 {{ $lang === 'ar' ? 'قبض' : 'Paid' }}</button>
-                        </form>
+                        <button type="button" class="btn btn-success btn-sm" onclick="openPayModal('{{ $ins->id }}', '{{ $ins->reference_number }}', {{ $ins->price }})">💵 {{ $lang === 'ar' ? 'قبض' : 'Paid' }}</button>
                     </td>
                 </tr>
                 @endforeach
@@ -141,6 +136,76 @@
     </div>
 </div>
 @endif
+
+{{-- Paid Inspections Detail --}}
+<div class="card mb-2">
+    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <h3>💰 {{ $lang === 'ar' ? 'سجل الدفعات' : 'Payment History' }} — {{ $dailyReport['month_label'] }}</h3>
+        <span class="badge badge-success" style="font-size:.75rem">{{ $payments->total() }} {{ $lang === 'ar' ? 'دفعة' : 'payments' }}</span>
+    </div>
+    <div class="card-body" style="overflow-x:auto">
+        <table class="data-table" style="width:100%">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>{{ $lang === 'ar' ? 'الرقم المرجعي' : 'Reference' }}</th>
+                    <th>{{ $lang === 'ar' ? 'المركبة' : 'Vehicle' }}</th>
+                    <th>{{ $lang === 'ar' ? 'القالب' : 'Template' }}</th>
+                    <th>{{ $lang === 'ar' ? 'السعر' : 'Price' }}</th>
+                    <th>{{ $lang === 'ar' ? 'الخصم' : 'Discount' }}</th>
+                    <th>{{ $lang === 'ar' ? 'الصافي' : 'Net' }}</th>
+                    <th>{{ $lang === 'ar' ? 'تاريخ الدفع' : 'Paid Date' }}</th>
+                    <th>{{ $lang === 'ar' ? 'الملاحظة' : 'Note' }}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($payments as $idx => $pay)
+                <tr>
+                    <td style="color:var(--gray-400);font-size:.8rem">{{ $payments->firstItem() + $idx }}</td>
+                    <td>
+                        <a href="{{ route('inspections.show', $pay->id) }}" class="font-mono" style="font-size:.8rem;color:var(--primary);text-decoration:none">{{ $pay->reference_number }}</a>
+                    </td>
+                    <td style="font-size:.85rem">{{ $pay->vehicle->full_name ?? '-' }}</td>
+                    <td style="font-size:.82rem;color:var(--gray-500)">{{ $pay->template->name ?? '-' }}</td>
+                    <td style="font-weight:600">{{ number_format($pay->price, 2) }}</td>
+                    <td>
+                        @if($pay->discount > 0)
+                            <span style="color:var(--danger);font-size:.85rem">-{{ number_format($pay->discount, 2) }}</span>
+                        @else
+                            <span style="color:var(--gray-400)">—</span>
+                        @endif
+                    </td>
+                    <td style="font-weight:700;color:var(--success)">{{ number_format($pay->price - $pay->discount, 2) }}</td>
+                    <td style="font-size:.8rem;color:var(--gray-500)">{{ $pay->paid_at?->format('Y-m-d H:i') }}</td>
+                    <td style="font-size:.8rem;color:var(--gray-500);max-width:150px">
+                        @if($pay->payment_note)
+                            <button type="button" class="btn btn-ghost btn-sm" style="font-size:.78rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;text-align:start" onclick="viewNote(this)" data-ref="{{ $pay->reference_number }}" data-note="{{ e($pay->payment_note) }}" data-date="{{ $pay->paid_at?->format('Y-m-d H:i') }}" data-amount="{{ number_format($pay->price - $pay->discount, 2) }}">
+                                📝 {{ Str::limit($pay->payment_note, 20) }}
+                            </button>
+                        @else
+                            <span style="color:var(--gray-400)">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ route('finance.markUnpaid', $pay->id) }}" onsubmit="return confirm('{{ $lang === 'ar' ? 'إلغاء الدفع؟' : 'Reverse payment?' }}')">
+                            @csrf
+                            <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);font-size:.75rem" title="{{ $lang === 'ar' ? 'إلغاء الدفع' : 'Reverse' }}">↩</button>
+                        </form>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="10" class="text-center text-muted" style="padding:2rem">{{ $lang === 'ar' ? 'لا توجد دفعات لهذا الشهر' : 'No payments this month' }}</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+        @if($payments->hasPages())
+        <div style="margin-top:1rem;display:flex;justify-content:center">
+            {{ $payments->appends(['month' => $month])->links() }}
+        </div>
+        @endif
+    </div>
+</div>
 
 @endsection
 
@@ -186,4 +251,7 @@ new Chart(document.getElementById('monthly-chart'), {
     }
 });
 </script>
+
+@include('partials.payment-modal')
+@include('partials.note-modal')
 @endsection

@@ -106,6 +106,26 @@ class RevenueService
     }
 
     /**
+     * Get paid inspections (paginated, with filters)
+     */
+    public function getPaidInspections(?string $month = null, int $perPage = 20)
+    {
+        $query = Inspection::where('status', 'completed')
+            ->where('payment_status', 'paid')
+            ->with(['vehicle', 'template', 'inspector']);
+
+        if ($month) {
+            $date = Carbon::parse($month . '-01');
+            $query->whereBetween('paid_at', [
+                $date->copy()->startOfMonth(),
+                $date->copy()->endOfMonth(),
+            ]);
+        }
+
+        return $query->latest('paid_at')->paginate($perPage);
+    }
+
+    /**
      * Mark inspection as paid
      */
     public function markAsPaid(string $inspectionId, float $discount = 0, ?string $note = null): Inspection

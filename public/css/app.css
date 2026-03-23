@@ -211,9 +211,7 @@ img { max-width: 100%; }
 .form-error { color: var(--danger); font-size: .78rem; margin-top: .25rem; }
 textarea.form-control { resize: vertical; min-height: 80px; }
 select.form-control { cursor: pointer; appearance: auto; }
-.filter-select { background:var(--accent)!important;color:var(--accent-text)!important;border-color:var(--accent)!important;font-weight:600!important;border-radius:var(--radius-sm)!important;width:auto!important;min-width:140px;max-width:200px }
-.filter-select:hover { opacity:.85 }
-.filter-select option { background:#fff;color:#1f2937 }
+.filter-select { width:auto!important;min-width:140px;max-width:200px }
 
 /* Mode Tabs (create inspection) */
 .mode-tab { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--gray-200); transition: var(--transition-fast); }
@@ -1443,10 +1441,6 @@ nav[role="navigation"] svg { width: 16px; height: 16px; }
 .dark .form-label { color:#cbd5e1 }
 .dark select.form-control option { background:#1e293b;color:#e2e8f0 }
 
-/* Filter selects in dark */
-.dark .filter-select { background:var(--accent)!important;color:var(--accent-text)!important;border-color:var(--accent)!important }
-.dark .filter-select option { background:#1e293b;color:#e2e8f0 }
-
 /* Buttons */
 .dark .btn-secondary { background:#334155;color:#e2e8f0;border-color:#475569 }
 .dark .btn-secondary:hover { background:#475569 }
@@ -1465,6 +1459,9 @@ nav[role="navigation"] svg { width: 16px; height: 16px; }
 .dark .modal-header { border-color:#334155 }
 .dark .modal-footer { border-color:#334155 }
 .dark .modal-backdrop { background:rgba(0,0,0,.7) }
+.dark .modal-close { color:#94a3b8 }
+.dark .modal-close:hover { background:#334155;color:#e2e8f0 }
+.dark .modal-body { color:#e2e8f0 }
 
 /* Scrollbar */
 .dark ::-webkit-scrollbar-track { background:#0f172a }

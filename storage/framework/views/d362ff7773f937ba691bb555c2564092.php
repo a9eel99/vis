@@ -71,20 +71,16 @@
             <?php if($inspection->status->value === 'completed'): ?>
                 
                 <?php if($inspection->payment_status === 'paid'): ?>
-                    <span class="hbtn" style="background:#dcfce7;color:#16a34a;cursor:default;font-weight:700" title="<?php echo e($inspection->payment_note ?? ''); ?>">
+                    <button type="button" class="hbtn" style="background:#dcfce7;color:#16a34a;cursor:pointer;font-weight:700;border:none" onclick="viewNote(this)" data-ref="<?php echo e($inspection->reference_number); ?>" data-note="<?php echo e(e($inspection->payment_note ?? ($lang === 'ar' ? 'بدون ملاحظة' : 'No note'))); ?>" data-date="<?php echo e($inspection->paid_at?->format('Y-m-d H:i')); ?>" data-amount="<?php echo e(number_format($inspection->price - $inspection->discount, 2)); ?>">
                         💰 <?php echo e($lang === 'ar' ? 'مدفوع' : 'Paid'); ?> — <?php echo e(number_format($inspection->price - $inspection->discount, 2)); ?> <?php echo e($lang === 'ar' ? 'د.أ' : 'JOD'); ?>
 
-                        <?php if($inspection->payment_note): ?> <span style="font-weight:400;font-size:.75rem;opacity:.8">| <?php echo e($inspection->payment_note); ?></span> <?php endif; ?>
-                    </span>
+                        <?php if($inspection->payment_note): ?> <span style="font-weight:400;font-size:.75rem;opacity:.8">| 📝</span> <?php endif; ?>
+                    </button>
                 <?php elseif($inspection->price > 0): ?>
-                    <form method="POST" action="<?php echo e(route('finance.markPaid', $inspection->id)); ?>" style="display:inline-flex;gap:4px;align-items:center">
-                        <?php echo csrf_field(); ?>
-                        <input type="text" name="payment_note" class="form-control" style="width:120px;padding:4px 8px;font-size:.8rem;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px" placeholder="<?php echo e($lang === 'ar' ? 'ملاحظة...' : 'Note...'); ?>">
-                        <button type="submit" class="hbtn" style="background:#f59e0b;color:#fff">
-                            💵 <?php echo e($lang === 'ar' ? 'قبض ' . number_format($inspection->price, 2) . ' د.أ' : 'Collect ' . number_format($inspection->price, 2) . ' JOD'); ?>
+                    <button type="button" class="hbtn" style="background:#f59e0b;color:#fff" onclick="openPayModal('<?php echo e($inspection->id); ?>', '<?php echo e($inspection->reference_number); ?>', <?php echo e($inspection->price); ?>)">
+                        💵 <?php echo e($lang === 'ar' ? 'قبض ' . number_format($inspection->price, 2) . ' د.أ' : 'Collect ' . number_format($inspection->price, 2) . ' JOD'); ?>
 
-                        </button>
-                    </form>
+                    </button>
                 <?php endif; ?>
 
                 <a href="<?php echo e(route('reports.pdf', $inspection)); ?>" class="hbtn hbtn-pdf">
@@ -368,6 +364,13 @@
     </div>
 </div>
 <?php endif; ?>
+
+
+<?php if($inspection->status->value === 'completed' && $inspection->payment_status !== 'paid' && $inspection->price > 0): ?>
+    <?php echo $__env->make('partials.payment-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php endif; ?>
+
+<?php echo $__env->make('partials.note-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <script src="<?php echo e(asset('js/inspection-show.js')); ?>"></script>
 <?php $__env->stopSection(); ?>

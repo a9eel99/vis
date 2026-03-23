@@ -68,18 +68,14 @@
             @if($inspection->status->value === 'completed')
                 {{-- Payment Status --}}
                 @if($inspection->payment_status === 'paid')
-                    <span class="hbtn" style="background:#dcfce7;color:#16a34a;cursor:default;font-weight:700" title="{{ $inspection->payment_note ?? '' }}">
+                    <button type="button" class="hbtn" style="background:#dcfce7;color:#16a34a;cursor:pointer;font-weight:700;border:none" onclick="viewNote(this)" data-ref="{{ $inspection->reference_number }}" data-note="{{ e($inspection->payment_note ?? ($lang === 'ar' ? 'بدون ملاحظة' : 'No note')) }}" data-date="{{ $inspection->paid_at?->format('Y-m-d H:i') }}" data-amount="{{ number_format($inspection->price - $inspection->discount, 2) }}">
                         💰 {{ $lang === 'ar' ? 'مدفوع' : 'Paid' }} — {{ number_format($inspection->price - $inspection->discount, 2) }} {{ $lang === 'ar' ? 'د.أ' : 'JOD' }}
-                        @if($inspection->payment_note) <span style="font-weight:400;font-size:.75rem;opacity:.8">| {{ $inspection->payment_note }}</span> @endif
-                    </span>
+                        @if($inspection->payment_note) <span style="font-weight:400;font-size:.75rem;opacity:.8">| 📝</span> @endif
+                    </button>
                 @elseif($inspection->price > 0)
-                    <form method="POST" action="{{ route('finance.markPaid', $inspection->id) }}" style="display:inline-flex;gap:4px;align-items:center">
-                        @csrf
-                        <input type="text" name="payment_note" class="form-control" style="width:120px;padding:4px 8px;font-size:.8rem;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px" placeholder="{{ $lang === 'ar' ? 'ملاحظة...' : 'Note...' }}">
-                        <button type="submit" class="hbtn" style="background:#f59e0b;color:#fff">
-                            💵 {{ $lang === 'ar' ? 'قبض ' . number_format($inspection->price, 2) . ' د.أ' : 'Collect ' . number_format($inspection->price, 2) . ' JOD' }}
-                        </button>
-                    </form>
+                    <button type="button" class="hbtn" style="background:#f59e0b;color:#fff" onclick="openPayModal('{{ $inspection->id }}', '{{ $inspection->reference_number }}', {{ $inspection->price }})">
+                        💵 {{ $lang === 'ar' ? 'قبض ' . number_format($inspection->price, 2) . ' د.أ' : 'Collect ' . number_format($inspection->price, 2) . ' JOD' }}
+                    </button>
                 @endif
 
                 <a href="{{ route('reports.pdf', $inspection) }}" class="hbtn hbtn-pdf">
@@ -349,6 +345,13 @@
     </div>
 </div>
 @endif
+
+{{-- Payment Modal (shared component) --}}
+@if($inspection->status->value === 'completed' && $inspection->payment_status !== 'paid' && $inspection->price > 0)
+    @include('partials.payment-modal')
+@endif
+
+@include('partials.note-modal')
 
 <script src="{{ asset('js/inspection-show.js') }}"></script>
 @endsection

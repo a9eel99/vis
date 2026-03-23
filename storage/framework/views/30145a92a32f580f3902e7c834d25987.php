@@ -127,12 +127,7 @@
                     <td style="font-weight:700"><?php echo e(number_format($ins->price, 2)); ?></td>
                     <td style="font-size:.82rem;color:var(--gray-500)"><?php echo e($ins->completed_at?->format('Y-m-d') ?? $ins->created_at->format('Y-m-d')); ?></td>
                     <td>
-                        <form method="POST" action="<?php echo e(route('finance.markPaid', $ins->id)); ?>" style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
-                            <?php echo csrf_field(); ?>
-                            <input type="number" name="discount" value="0" min="0" step="0.01" class="form-control" style="width:65px;padding:4px 6px;font-size:.8rem" placeholder="<?php echo e($lang === 'ar' ? 'خصم' : 'Disc'); ?>">
-                            <input type="text" name="payment_note" class="form-control" style="width:120px;padding:4px 6px;font-size:.8rem" placeholder="<?php echo e($lang === 'ar' ? 'ملاحظة...' : 'Note...'); ?>">
-                            <button type="submit" class="btn btn-success btn-sm">💵 <?php echo e($lang === 'ar' ? 'قبض' : 'Paid'); ?></button>
-                        </form>
+                        <button type="button" class="btn btn-success btn-sm" onclick="openPayModal('<?php echo e($ins->id); ?>', '<?php echo e($ins->reference_number); ?>', <?php echo e($ins->price); ?>)">💵 <?php echo e($lang === 'ar' ? 'قبض' : 'Paid'); ?></button>
                     </td>
                 </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -141,6 +136,78 @@
     </div>
 </div>
 <?php endif; ?>
+
+
+<div class="card mb-2">
+    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <h3>💰 <?php echo e($lang === 'ar' ? 'سجل الدفعات' : 'Payment History'); ?> — <?php echo e($dailyReport['month_label']); ?></h3>
+        <span class="badge badge-success" style="font-size:.75rem"><?php echo e($payments->total()); ?> <?php echo e($lang === 'ar' ? 'دفعة' : 'payments'); ?></span>
+    </div>
+    <div class="card-body" style="overflow-x:auto">
+        <table class="data-table" style="width:100%">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th><?php echo e($lang === 'ar' ? 'الرقم المرجعي' : 'Reference'); ?></th>
+                    <th><?php echo e($lang === 'ar' ? 'المركبة' : 'Vehicle'); ?></th>
+                    <th><?php echo e($lang === 'ar' ? 'القالب' : 'Template'); ?></th>
+                    <th><?php echo e($lang === 'ar' ? 'السعر' : 'Price'); ?></th>
+                    <th><?php echo e($lang === 'ar' ? 'الخصم' : 'Discount'); ?></th>
+                    <th><?php echo e($lang === 'ar' ? 'الصافي' : 'Net'); ?></th>
+                    <th><?php echo e($lang === 'ar' ? 'تاريخ الدفع' : 'Paid Date'); ?></th>
+                    <th><?php echo e($lang === 'ar' ? 'الملاحظة' : 'Note'); ?></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php $__empty_1 = true; $__currentLoopData = $payments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $idx => $pay): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <tr>
+                    <td style="color:var(--gray-400);font-size:.8rem"><?php echo e($payments->firstItem() + $idx); ?></td>
+                    <td>
+                        <a href="<?php echo e(route('inspections.show', $pay->id)); ?>" class="font-mono" style="font-size:.8rem;color:var(--primary);text-decoration:none"><?php echo e($pay->reference_number); ?></a>
+                    </td>
+                    <td style="font-size:.85rem"><?php echo e($pay->vehicle->full_name ?? '-'); ?></td>
+                    <td style="font-size:.82rem;color:var(--gray-500)"><?php echo e($pay->template->name ?? '-'); ?></td>
+                    <td style="font-weight:600"><?php echo e(number_format($pay->price, 2)); ?></td>
+                    <td>
+                        <?php if($pay->discount > 0): ?>
+                            <span style="color:var(--danger);font-size:.85rem">-<?php echo e(number_format($pay->discount, 2)); ?></span>
+                        <?php else: ?>
+                            <span style="color:var(--gray-400)">—</span>
+                        <?php endif; ?>
+                    </td>
+                    <td style="font-weight:700;color:var(--success)"><?php echo e(number_format($pay->price - $pay->discount, 2)); ?></td>
+                    <td style="font-size:.8rem;color:var(--gray-500)"><?php echo e($pay->paid_at?->format('Y-m-d H:i')); ?></td>
+                    <td style="font-size:.8rem;color:var(--gray-500);max-width:150px">
+                        <?php if($pay->payment_note): ?>
+                            <button type="button" class="btn btn-ghost btn-sm" style="font-size:.78rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;text-align:start" onclick="viewNote(this)" data-ref="<?php echo e($pay->reference_number); ?>" data-note="<?php echo e(e($pay->payment_note)); ?>" data-date="<?php echo e($pay->paid_at?->format('Y-m-d H:i')); ?>" data-amount="<?php echo e(number_format($pay->price - $pay->discount, 2)); ?>">
+                                📝 <?php echo e(Str::limit($pay->payment_note, 20)); ?>
+
+                            </button>
+                        <?php else: ?>
+                            <span style="color:var(--gray-400)">—</span>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <form method="POST" action="<?php echo e(route('finance.markUnpaid', $pay->id)); ?>" onsubmit="return confirm('<?php echo e($lang === 'ar' ? 'إلغاء الدفع؟' : 'Reverse payment?'); ?>')">
+                            <?php echo csrf_field(); ?>
+                            <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);font-size:.75rem" title="<?php echo e($lang === 'ar' ? 'إلغاء الدفع' : 'Reverse'); ?>">↩</button>
+                        </form>
+                    </td>
+                </tr>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                <tr><td colspan="10" class="text-center text-muted" style="padding:2rem"><?php echo e($lang === 'ar' ? 'لا توجد دفعات لهذا الشهر' : 'No payments this month'); ?></td></tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+        <?php if($payments->hasPages()): ?>
+        <div style="margin-top:1rem;display:flex;justify-content:center">
+            <?php echo e($payments->appends(['month' => $month])->links()); ?>
+
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
 
 <?php $__env->stopSection(); ?>
 
@@ -186,5 +253,8 @@ new Chart(document.getElementById('monthly-chart'), {
     }
 });
 </script>
+
+<?php echo $__env->make('partials.payment-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php echo $__env->make('partials.note-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\vis\resources\views/finance/index.blade.php ENDPATH**/ ?>

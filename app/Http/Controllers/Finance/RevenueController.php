@@ -23,10 +23,11 @@ class RevenueController extends Controller
             $dailyReport = $this->revenueService->getDailyReport($month);
             $monthlyReport = $this->revenueService->getMonthlyReport(12);
             $unpaid = $this->revenueService->getUnpaidInspections();
+            $payments = $this->revenueService->getPaidInspections($month);
             $lang = app()->getLocale();
 
             return view('finance.index', compact(
-                'summary', 'dailyReport', 'monthlyReport', 'unpaid', 'month', 'lang'
+                'summary', 'dailyReport', 'monthlyReport', 'unpaid', 'payments', 'month', 'lang'
             ));
         } catch (\Throwable $e) {
             report($e);
