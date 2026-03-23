@@ -30,6 +30,9 @@ Route::middleware('throttle:30,1')->group(function () {
     Route::get('share/{token}/pdf', [ReportController::class, 'publicPdf'])->name('share.pdf');
 });
 
+// PWA offline page
+Route::get('offline', fn() => view('errors.offline'))->name('offline');
+
 // ========= AUTHENTICATED ROUTES =========
 Route::middleware('auth')->group(function () {
 
