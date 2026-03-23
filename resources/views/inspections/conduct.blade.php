@@ -145,18 +145,29 @@
                             @break
 
                         @case('photo')
-                        @case('video')
                             <div class="wq-upload-area" id="upload-{{ $question->id }}">
                                 <div class="upload-files-list" id="files-{{ $question->id }}"></div>
-                                <button type="button" class="wq-upload-btn" onclick="document.getElementById('finput-{{ $question->id }}').click()">
-                                    <span>{{ $question->type->value == 'photo' ? '📷' : '🎥' }}</span>
-                                    {{ $lang === 'ar' ? ($question->type->value == 'photo' ? 'إضافة صور' : 'إضافة فيديو') : ($question->type->value == 'photo' ? 'Add Photos' : 'Add Videos') }}
-                                </button>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                                    <button type="button" class="wq-upload-btn" onclick="document.getElementById('fcam-{{ $question->id }}').click()">
+                                        <span>📷</span>
+                                        {{ $lang === 'ar' ? 'التقاط صورة' : 'Take Photo' }}
+                                    </button>
+                                    <button type="button" class="wq-upload-btn" onclick="document.getElementById('finput-{{ $question->id }}').click()" style="background:var(--gray-100);color:var(--gray-700)">
+                                        <span>🖼️</span>
+                                        {{ $lang === 'ar' ? 'من المعرض' : 'Gallery' }}
+                                    </button>
+                                </div>
+                                {{-- Camera input --}}
+                                <input type="file" id="fcam-{{ $question->id }}"
+                                    accept="image/*" capture="environment"
+                                    style="display:none"
+                                    onchange="addFiles(this, '{{ $question->id }}')">
+                                {{-- Gallery input --}}
                                 <input type="file" id="finput-{{ $question->id }}"
                                     name="media[{{ $question->id }}][]"
-                                    accept="{{ $question->type->value == 'photo' ? 'image/*' : 'video/*' }}"
+                                    accept="image/*"
                                     multiple style="display:none"
-                                    onchange="previewFiles(this, '{{ $question->id }}')">
+                                    onchange="addFiles(this, '{{ $question->id }}')">
                             </div>
                             @break
                     @endswitch
