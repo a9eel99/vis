@@ -42,11 +42,13 @@ class RevenueController extends Controller
     {
         $request->validate([
             'discount' => 'nullable|numeric|min:0',
+            'payment_note' => 'nullable|string|max:500',
         ]);
 
         try {
             $discount = (float) $request->input('discount', 0);
-            $this->revenueService->markAsPaid($id, $discount);
+            $note = $request->input('payment_note');
+            $this->revenueService->markAsPaid($id, $discount, $note);
 
             $lang = app()->getLocale();
             return back()->with('success', $lang === 'ar' ? 'تم تسجيل الدفع بنجاح.' : 'Payment recorded.');

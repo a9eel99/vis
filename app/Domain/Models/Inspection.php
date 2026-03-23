@@ -35,6 +35,7 @@ class Inspection extends Model
         'payment_status',
         'paid_at',
         'discount',
+        'payment_note',
         'started_at',
         'completed_at',
     ];

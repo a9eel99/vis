@@ -68,12 +68,14 @@
             @if($inspection->status->value === 'completed')
                 {{-- Payment Status --}}
                 @if($inspection->payment_status === 'paid')
-                    <span class="hbtn" style="background:#dcfce7;color:#16a34a;cursor:default;font-weight:700">
+                    <span class="hbtn" style="background:#dcfce7;color:#16a34a;cursor:default;font-weight:700" title="{{ $inspection->payment_note ?? '' }}">
                         💰 {{ $lang === 'ar' ? 'مدفوع' : 'Paid' }} — {{ number_format($inspection->price - $inspection->discount, 2) }} {{ $lang === 'ar' ? 'د.أ' : 'JOD' }}
+                        @if($inspection->payment_note) <span style="font-weight:400;font-size:.75rem;opacity:.8">| {{ $inspection->payment_note }}</span> @endif
                     </span>
                 @elseif($inspection->price > 0)
-                    <form method="POST" action="{{ route('finance.markPaid', $inspection->id) }}" style="display:inline">
+                    <form method="POST" action="{{ route('finance.markPaid', $inspection->id) }}" style="display:inline-flex;gap:4px;align-items:center">
                         @csrf
+                        <input type="text" name="payment_note" class="form-control" style="width:120px;padding:4px 8px;font-size:.8rem;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px" placeholder="{{ $lang === 'ar' ? 'ملاحظة...' : 'Note...' }}">
                         <button type="submit" class="hbtn" style="background:#f59e0b;color:#fff">
                             💵 {{ $lang === 'ar' ? 'قبض ' . number_format($inspection->price, 2) . ' د.أ' : 'Collect ' . number_format($inspection->price, 2) . ' JOD' }}
                         </button>

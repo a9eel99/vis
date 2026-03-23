@@ -45,7 +45,7 @@
 <div class="card mb-2">
     <div class="card-header"><h3>📈 <?php echo e($lang === 'ar' ? 'الإيرادات الشهرية' : 'Monthly Revenue'); ?></h3></div>
     <div class="card-body">
-        <canvas id="monthly-chart" height="100"></canvas>
+        <canvas id="monthly-chart" height="200"></canvas>
     </div>
 </div>
 
@@ -127,9 +127,10 @@
                     <td style="font-weight:700"><?php echo e(number_format($ins->price, 2)); ?></td>
                     <td style="font-size:.82rem;color:var(--gray-500)"><?php echo e($ins->completed_at?->format('Y-m-d') ?? $ins->created_at->format('Y-m-d')); ?></td>
                     <td>
-                        <form method="POST" action="<?php echo e(route('finance.markPaid', $ins->id)); ?>" style="display:inline-flex;gap:4px;align-items:center">
+                        <form method="POST" action="<?php echo e(route('finance.markPaid', $ins->id)); ?>" style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
                             <?php echo csrf_field(); ?>
-                            <input type="number" name="discount" value="0" min="0" step="0.01" class="form-control" style="width:70px;padding:4px 6px;font-size:.8rem" placeholder="<?php echo e($lang === 'ar' ? 'خصم' : 'Disc'); ?>">
+                            <input type="number" name="discount" value="0" min="0" step="0.01" class="form-control" style="width:65px;padding:4px 6px;font-size:.8rem" placeholder="<?php echo e($lang === 'ar' ? 'خصم' : 'Disc'); ?>">
+                            <input type="text" name="payment_note" class="form-control" style="width:120px;padding:4px 6px;font-size:.8rem" placeholder="<?php echo e($lang === 'ar' ? 'ملاحظة...' : 'Note...'); ?>">
                             <button type="submit" class="btn btn-success btn-sm">💵 <?php echo e($lang === 'ar' ? 'قبض' : 'Paid'); ?></button>
                         </form>
                     </td>

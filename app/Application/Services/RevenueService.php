@@ -108,13 +108,14 @@ class RevenueService
     /**
      * Mark inspection as paid
      */
-    public function markAsPaid(string $inspectionId, float $discount = 0): Inspection
+    public function markAsPaid(string $inspectionId, float $discount = 0, ?string $note = null): Inspection
     {
         $inspection = Inspection::findOrFail($inspectionId);
         $inspection->update([
             'payment_status' => 'paid',
             'paid_at' => now(),
             'discount' => $discount,
+            'payment_note' => $note,
         ]);
         return $inspection;
     }
