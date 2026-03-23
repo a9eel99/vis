@@ -26,6 +26,11 @@ return new class extends Migration
             $table->timestamp('hidden_at')->nullable();
             $table->foreignUuid('hidden_by')->nullable()->constrained('users')->nullOnDelete();
             $table->text('notes')->nullable();
+            $table->decimal('price', 8, 2)->default(0);
+            $table->enum('payment_status', ['unpaid', 'paid'])->default('unpaid');
+            $table->timestamp('paid_at')->nullable();
+            $table->decimal('discount', 8, 2)->default(0);
+            $table->string('payment_note', 500)->nullable();
             $table->timestamp('started_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
@@ -36,6 +41,8 @@ return new class extends Migration
             $table->index('inspector_id');
             $table->index('vehicle_id');
             $table->index('grade');
+            $table->index('payment_status');
+            $table->index('paid_at');
         });
 
         Schema::create('inspection_results', function (Blueprint $table) {

@@ -14,8 +14,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->string('fuel_type', 20)->nullable();
-            $table->string('scoring_mode', 20)->default('scored')
-                  ->comment('scored = with grades/percentages, descriptive = observations only');
+            $table->string('scoring_mode', 20)->default('scored');
+            $table->decimal('price', 8, 2)->default(0);
             $table->integer('version')->default(1);
             $table->foreignUuid('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
