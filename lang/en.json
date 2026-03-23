@@ -407,5 +407,38 @@
     "audit_date": "Audit Date",
     "audit_details": "Audit Details",
     "_comment_misc": " Comment Misc",
-    "auto": "Auto"
+    "auto": "Auto",
+
+    "finance": "Finance",
+
+    "create": "Create",
+
+
+    "revenue": "Revenue",
+    "paid": "Paid",
+    "unpaid": "Unpaid",
+    "discount": "Discount",
+    "collect": "Collect",
+    "price": "Price",
+    "payment_note": "Payment Note",
+    "payment_method": "Payment Method",
+    "cash": "Cash",
+    "wallet": "Wallet",
+    "bank_transfer": "Bank Transfer",
+    "confirm_payment": "Confirm Payment",
+
+    "license_plate": "License Plate",
+    "gasoline": "Gasoline",
+    "diesel": "Diesel",
+    "electric": "Electric",
+    "hybrid": "Hybrid",
+    "lpg": "LPG",
+
+    "address": "Address",
+    "id_number": "ID Number",
+
+
+    "pagination_showing": "Showing",
+    "pagination_of": "of",
+    "pagination_results": "results"
 }

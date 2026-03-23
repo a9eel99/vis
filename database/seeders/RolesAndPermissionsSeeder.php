@@ -20,24 +20,30 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage users', 'view users', 'create users', 'edit users', 'delete users',
             'view reports', 'export reports',
             'view audit logs',
+            'view finance', 'manage finance',
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
         }
 
+        // Super Admin — all permissions
         $superAdmin = Role::firstOrCreate(['name' => 'Super Admin']);
         $superAdmin->givePermissionTo(Permission::all());
 
+        // Admin — everything except delete users
         $admin = Role::firstOrCreate(['name' => 'Admin']);
         $admin->givePermissionTo([
-            'view dashboard', 'manage vehicles', 'view vehicles', 'create vehicles', 'edit vehicles', 'delete vehicles',
+            'view dashboard',
+            'manage vehicles', 'view vehicles', 'create vehicles', 'edit vehicles', 'delete vehicles',
             'manage templates', 'view templates', 'create templates', 'edit templates', 'delete templates',
             'manage inspections', 'view inspections', 'create inspections', 'conduct inspections', 'delete inspections',
             'manage users', 'view users', 'create users', 'edit users',
             'view reports', 'export reports', 'view audit logs',
+            'view finance', 'manage finance',
         ]);
 
+        // Inspector — inspections + vehicles only
         $inspector = Role::firstOrCreate(['name' => 'Inspector']);
         $inspector->givePermissionTo([
             'view dashboard', 'view vehicles', 'create vehicles',
@@ -45,6 +51,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view reports',
         ]);
 
+        // Viewer — read only
         $viewer = Role::firstOrCreate(['name' => 'Viewer']);
         $viewer->givePermissionTo([
             'view dashboard', 'view vehicles', 'view inspections', 'view reports',
