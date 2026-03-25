@@ -59,11 +59,17 @@
                 <div class="form-grid-2">
                     <div class="form-group">
                         <label class="form-label">{{ $lang === 'ar' ? 'الشركة المصنّعة' : 'Make' }} *</label>
-                        <input type="text" name="make" class="form-control new-field" placeholder="{{ $lang === 'ar' ? 'مثال: Toyota' : 'e.g. Toyota' }}" value="{{ old('make') }}">
+                        <select name="make" id="new-car-make" class="form-control new-field" required
+                            data-value="{{ old('make') }}">
+                            <option value="">{{ $lang === 'ar' ? 'جاري التحميل...' : 'Loading...' }}</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">{{ $lang === 'ar' ? 'الموديل' : 'Model' }} *</label>
-                        <input type="text" name="model" class="form-control new-field" placeholder="{{ $lang === 'ar' ? 'مثال: Camry' : 'e.g. Camry' }}" value="{{ old('model') }}">
+                        <select name="model" id="new-car-model" class="form-control new-field" required
+                            data-value="{{ old('model') }}">
+                            <option value="">{{ $lang === 'ar' ? 'اختر الشركة أولاً' : 'Select make first' }}</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-grid-2">
@@ -73,7 +79,10 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">{{ $lang === 'ar' ? 'اللون' : 'Color' }}</label>
-                        <input type="text" name="color" class="form-control" value="{{ old('color') }}">
+                        <select name="color" id="new-car-color" class="form-control"
+                            data-value="{{ old('color') }}">
+                            <option value="">{{ $lang === 'ar' ? 'جاري التحميل...' : 'Loading...' }}</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-grid-2">
@@ -188,5 +197,9 @@
 @endsection
 
 @section('modals')
+<script src="{{ asset('js/car-selector.js') }}"></script>
 <script src="{{ asset('js/inspections-create.js') }}"></script>
+<script>
+    initCarSelector('new-car-make', 'new-car-model', 'new-car-color');
+</script>
 @endsection
