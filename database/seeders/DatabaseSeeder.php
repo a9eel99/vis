@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             DefaultSettingsSeeder::class,
             AdminUserSeeder::class,
+            CarMakesAndColorsSeeder::class,
         ]);
     }
 }

@@ -17,6 +17,13 @@ Route::get('lang/{locale}', function (string $locale) {
     return redirect()->back();
 })->name('lang.switch');
 
+// Car Data API (public — for form dropdowns)
+Route::prefix('api/car-data')->group(function () {
+    Route::get('makes', [\App\Http\Controllers\Api\CarDataController::class, 'makes']);
+    Route::get('makes/{id}/models', [\App\Http\Controllers\Api\CarDataController::class, 'models']);
+    Route::get('colors', [\App\Http\Controllers\Api\CarDataController::class, 'colors']);
+});
+
 // Auth
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthController::class, 'showLogin'])->name('login');
