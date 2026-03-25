@@ -29,7 +29,12 @@ class UserController extends Controller
     public function store(UserRequest $request)
     {
         try {
-            $this->userService->create($request->validated());
+            $user = $this->userService->create($request->validated());
+
+            // Sync individual permissions if provided
+            if ($request->has('permissions')) {
+                $user->syncPermissions($request->input('permissions', []));
+            }
 
             return redirect()->route('users.index')
                 ->with('success', app()->getLocale() === 'ar' ? 'تم إنشاء المستخدم بنجاح.' : 'User created successfully.');
@@ -50,7 +55,12 @@ class UserController extends Controller
     public function update(UserRequest $request, string $id)
     {
         try {
-            $this->userService->update($id, $request->validated());
+            $user = $this->userService->update($id, $request->validated());
+
+            // Sync individual permissions if provided
+            if ($request->has('permissions')) {
+                $user->syncPermissions($request->input('permissions', []));
+            }
 
             return redirect()->route('users.index')
                 ->with('success', app()->getLocale() === 'ar' ? 'تم تحديث المستخدم بنجاح.' : 'User updated successfully.');

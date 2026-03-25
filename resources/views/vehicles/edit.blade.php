@@ -13,12 +13,18 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">{{ __('make') }} <span class="required">*</span></label>
-                    <input type="text" name="make" class="form-control @error('make') is-invalid @enderror" value="{{ old('make', $vehicle->make) }}" required>
+                    <select name="make" id="v-car-make" class="form-control @error('make') is-invalid @enderror" required
+                        data-value="{{ old('make', $vehicle->make) }}">
+                        <option value="">{{ app()->getLocale() === 'ar' ? 'جاري التحميل...' : 'Loading...' }}</option>
+                    </select>
                     @error('make') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">{{ __('model') }} <span class="required">*</span></label>
-                    <input type="text" name="model" class="form-control @error('model') is-invalid @enderror" value="{{ old('model', $vehicle->model) }}" required>
+                    <select name="model" id="v-car-model" class="form-control @error('model') is-invalid @enderror" required
+                        data-value="{{ old('model', $vehicle->model) }}">
+                        <option value="">{{ app()->getLocale() === 'ar' ? 'جاري التحميل...' : 'Loading...' }}</option>
+                    </select>
                     @error('model') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
@@ -36,11 +42,14 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">{{ __('plate_number') }}</label>
-                    <input type="text" name="license_plate" class="form-control" value="{{ old('license_plate', $vehicle->license_plate) }}">
+                    <input type="text" name="license_plate" id="v-plate" class="form-control" value="{{ old('license_plate', $vehicle->license_plate) }}">
                 </div>
                 <div class="form-group">
                     <label class="form-label">{{ __('color') }}</label>
-                    <input type="text" name="color" class="form-control" value="{{ old('color', $vehicle->color) }}">
+                    <select name="color" id="v-car-color" class="form-control"
+                        data-value="{{ old('color', $vehicle->color) }}">
+                        <option value="">{{ app()->getLocale() === 'ar' ? 'جاري التحميل...' : 'Loading...' }}</option>
+                    </select>
                 </div>
             </div>
 
@@ -98,4 +107,13 @@
         </form>
     </div>
 </div>
+@endsection
+
+@section('modals')
+<script src="{{ asset('js/car-selector.js') }}"></script>
+<script src="{{ asset('js/plate-input.js') }}"></script>
+<script>
+initCarSelector('v-car-make', 'v-car-model', 'v-car-color');
+initPlateInput('v-plate');
+</script>
 @endsection

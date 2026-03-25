@@ -1,7 +1,84 @@
 @extends('layouts.app')
 @section('title', __('user_management'))
 
-@php $lang = app()->getLocale(); @endphp
+@php
+    $lang = app()->getLocale();
+
+    // Group permissions for display
+    $permissionGroups = [
+        'dashboard' => [
+            'icon' => '📊',
+            'label' => $lang === 'ar' ? 'لوحة التحكم' : 'Dashboard',
+            'permissions' => ['view dashboard'],
+        ],
+        'vehicles' => [
+            'icon' => '🚗',
+            'label' => $lang === 'ar' ? 'المركبات' : 'Vehicles',
+            'permissions' => ['view vehicles', 'create vehicles', 'edit vehicles', 'delete vehicles'],
+        ],
+        'inspections' => [
+            'icon' => '📋',
+            'label' => $lang === 'ar' ? 'الفحوصات' : 'Inspections',
+            'permissions' => ['view inspections', 'create inspections', 'conduct inspections', 'delete inspections'],
+        ],
+        'templates' => [
+            'icon' => '📁',
+            'label' => $lang === 'ar' ? 'القوالب' : 'Templates',
+            'permissions' => ['view templates', 'create templates', 'edit templates', 'delete templates'],
+        ],
+        'users' => [
+            'icon' => '👥',
+            'label' => $lang === 'ar' ? 'المستخدمون' : 'Users',
+            'permissions' => ['view users', 'create users', 'edit users', 'delete users'],
+        ],
+        'reports' => [
+            'icon' => '📈',
+            'label' => $lang === 'ar' ? 'التقارير' : 'Reports',
+            'permissions' => ['view reports', 'export reports', 'view audit logs'],
+        ],
+        'finance' => [
+            'icon' => '💰',
+            'label' => $lang === 'ar' ? 'المالية' : 'Finance',
+            'permissions' => ['view finance', 'manage finance'],
+        ],
+    ];
+
+    // Permission label translations
+    $permLabels = [
+        'view dashboard' => $lang === 'ar' ? 'عرض' : 'View',
+        'view vehicles' => $lang === 'ar' ? 'عرض' : 'View',
+        'create vehicles' => $lang === 'ar' ? 'إنشاء' : 'Create',
+        'edit vehicles' => $lang === 'ar' ? 'تعديل' : 'Edit',
+        'delete vehicles' => $lang === 'ar' ? 'حذف' : 'Delete',
+        'manage vehicles' => $lang === 'ar' ? 'إدارة' : 'Manage',
+        'view inspections' => $lang === 'ar' ? 'عرض' : 'View',
+        'create inspections' => $lang === 'ar' ? 'إنشاء' : 'Create',
+        'conduct inspections' => $lang === 'ar' ? 'تنفيذ' : 'Conduct',
+        'delete inspections' => $lang === 'ar' ? 'حذف' : 'Delete',
+        'manage inspections' => $lang === 'ar' ? 'إدارة' : 'Manage',
+        'view templates' => $lang === 'ar' ? 'عرض' : 'View',
+        'create templates' => $lang === 'ar' ? 'إنشاء' : 'Create',
+        'edit templates' => $lang === 'ar' ? 'تعديل' : 'Edit',
+        'delete templates' => $lang === 'ar' ? 'حذف' : 'Delete',
+        'manage templates' => $lang === 'ar' ? 'إدارة' : 'Manage',
+        'view users' => $lang === 'ar' ? 'عرض' : 'View',
+        'create users' => $lang === 'ar' ? 'إنشاء' : 'Create',
+        'edit users' => $lang === 'ar' ? 'تعديل' : 'Edit',
+        'delete users' => $lang === 'ar' ? 'حذف' : 'Delete',
+        'manage users' => $lang === 'ar' ? 'إدارة' : 'Manage',
+        'view reports' => $lang === 'ar' ? 'عرض' : 'View',
+        'export reports' => $lang === 'ar' ? 'تصدير' : 'Export',
+        'view audit logs' => $lang === 'ar' ? 'سجل النظام' : 'Audit Logs',
+        'view finance' => $lang === 'ar' ? 'عرض' : 'View',
+        'manage finance' => $lang === 'ar' ? 'إدارة' : 'Manage',
+    ];
+
+    // Role → permissions map for JS
+    $rolePermissions = [];
+    foreach ($roles as $role) {
+        $rolePermissions[$role->name] = $role->permissions->pluck('name')->toArray();
+    }
+@endphp
 
 @section('content')
 <div class="page-header">
@@ -50,7 +127,14 @@
                     <td>
                         <div class="action-buttons">
                             @can('edit users')
-                            <button type="button" class="btn btn-sm btn-secondary" onclick="editUser({{ json_encode(['id'=>$user->id,'name'=>$user->name,'email'=>$user->email,'phone'=>$user->phone,'role'=>$user->roles->first()?->name]) }})">{{ __('edit') }}</button>
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="editUser({{ json_encode([
+                                'id' => $user->id,
+                                'name' => $user->name,
+                                'email' => $user->email,
+                                'phone' => $user->phone,
+                                'role' => $user->roles->first()?->name,
+                                'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+                            ]) }})">{{ __('edit') }}</button>
                             <form action="{{ route('users.toggleActive', $user) }}" method="POST" style="display:inline">
                                 @csrf @method('PATCH')
                                 <button type="submit" class="btn btn-sm btn-{{ $user->is_active ? 'ghost' : 'success' }}">
@@ -120,13 +204,41 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">{{ __('role') }} <span class="required">*</span></label>
-                    <select name="role" id="u-role" class="form-control" required>
+                    <select name="role" id="u-role" class="form-control" required onchange="onRoleChange(this.value)">
                         <option value="">-- {{ $lang==='ar' ? 'اختر' : 'Select' }} --</option>
                         @foreach($roles as $role)
                             <option value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
                         @endforeach
                     </select>
                 </div>
+            </div>
+
+            {{-- Permissions Section --}}
+            <div style="margin:1rem 0 .5rem;padding-top:.75rem;border-top:1px solid var(--gray-200)">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <label class="form-label" style="font-size:.92rem;font-weight:700;margin:0">🔐 {{ $lang === 'ar' ? 'الصلاحيات' : 'Permissions' }}</label>
+                    <small style="color:var(--gray-400);font-size:.75rem">{{ $lang === 'ar' ? 'اختر الدور أولاً ثم عدّل حسب الحاجة' : 'Select role first, then customize' }}</small>
+                </div>
+            </div>
+
+            <div id="permissions-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.75rem">
+                @foreach($permissionGroups as $groupKey => $group)
+                <div class="perm-group" style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:.75rem">
+                    <div style="font-weight:600;font-size:.85rem;margin-bottom:.5rem;display:flex;align-items:center;gap:6px">
+                        <span>{{ $group['icon'] }}</span> {{ $group['label'] }}
+                        <label style="margin-right:auto;margin-left:auto"></label>
+                        <label style="font-size:.7rem;color:var(--gray-400);cursor:pointer;font-weight:400" onclick="toggleGroupPerms('{{ $groupKey }}')">{{ $lang === 'ar' ? 'تحديد الكل' : 'Toggle all' }}</label>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px 12px">
+                        @foreach($group['permissions'] as $perm)
+                        <label style="display:flex;align-items:center;gap:4px;font-size:.8rem;cursor:pointer;padding:2px 0">
+                            <input type="checkbox" name="permissions[]" value="{{ $perm }}" class="perm-cb perm-{{ $groupKey }}" data-group="{{ $groupKey }}">
+                            <span>{{ $permLabels[$perm] ?? $perm }}</span>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+                @endforeach
             </div>
         </div>
         <div class="modal-footer">
@@ -136,5 +248,78 @@
     </form>
 </div>
 
-<script src="{{ asset('js/users-index.js') }}"></script>
+<script>
+// Role → permissions mapping
+var rolePermissions = @json($rolePermissions);
+
+function onRoleChange(roleName) {
+    // Uncheck all
+    document.querySelectorAll('.perm-cb').forEach(function(cb) { cb.checked = false; });
+
+    if (!roleName || roleName === 'Super Admin') {
+        // Super Admin = all permissions
+        if (roleName === 'Super Admin') {
+            document.querySelectorAll('.perm-cb').forEach(function(cb) { cb.checked = true; });
+        }
+        return;
+    }
+
+    var perms = rolePermissions[roleName] || [];
+    perms.forEach(function(p) {
+        var cb = document.querySelector('.perm-cb[value="' + p + '"]');
+        if (cb) cb.checked = true;
+    });
+}
+
+function toggleGroupPerms(group) {
+    var cbs = document.querySelectorAll('.perm-' + group);
+    var allChecked = Array.from(cbs).every(function(cb) { return cb.checked; });
+    cbs.forEach(function(cb) { cb.checked = !allChecked; });
+}
+
+function setPermissions(perms) {
+    document.querySelectorAll('.perm-cb').forEach(function(cb) { cb.checked = false; });
+    (perms || []).forEach(function(p) {
+        var cb = document.querySelector('.perm-cb[value="' + p + '"]');
+        if (cb) cb.checked = true;
+    });
+}
+
+function resetUserForm() {
+    var lang = document.documentElement.getAttribute('lang') || 'en';
+    var form = document.getElementById('user-form');
+    form.action = form.dataset.storeUrl;
+    document.getElementById('user-method').value = 'POST';
+    document.getElementById('user-modal-title').textContent = lang === 'ar' ? 'إضافة مستخدم' : 'Add User';
+    document.getElementById('user-submit-btn').textContent = lang === 'ar' ? 'حفظ' : 'Save';
+    ['u-name','u-email','u-password','u-password-confirm','u-phone'].forEach(function(id) { document.getElementById(id).value = ''; });
+    document.getElementById('u-role').selectedIndex = 0;
+    document.getElementById('u-password').required = true;
+    document.getElementById('pwd-required').style.display = '';
+    document.getElementById('pwd-hint').style.display = 'none';
+    // Reset permissions
+    document.querySelectorAll('.perm-cb').forEach(function(cb) { cb.checked = false; });
+}
+
+function editUser(u) {
+    var lang = document.documentElement.getAttribute('lang') || 'en';
+    document.getElementById('user-form').action = '/users/' + u.id;
+    document.getElementById('user-method').value = 'PUT';
+    document.getElementById('user-modal-title').textContent = lang === 'ar' ? 'تعديل مستخدم' : 'Edit User';
+    document.getElementById('user-submit-btn').textContent = lang === 'ar' ? 'تحديث' : 'Update';
+    document.getElementById('u-name').value = u.name || '';
+    document.getElementById('u-email').value = u.email || '';
+    document.getElementById('u-phone').value = u.phone || '';
+    document.getElementById('u-password').value = '';
+    document.getElementById('u-password-confirm').value = '';
+    document.getElementById('u-password').required = false;
+    document.getElementById('pwd-required').style.display = 'none';
+    document.getElementById('pwd-hint').style.display = 'block';
+    var sel = document.getElementById('u-role');
+    for (var i = 0; i < sel.options.length; i++) { sel.options[i].selected = sel.options[i].value === (u.role || ''); }
+    // Set actual user permissions (not role defaults)
+    setPermissions(u.permissions || []);
+    openModal('user-modal');
+}
+</script>
 @endsection

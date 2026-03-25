@@ -40,7 +40,6 @@
                 <option value="inspections" {{ request('sort')==='inspections' ? 'selected' : '' }}>{{ $lang === 'ar' ? 'عدد الفحوصات' : 'Inspections' }}</option>
             </select>
             <button type="submit" class="btn btn-secondary">{{ __('search') }}</button>
-            {{-- View Toggle --}}
             <div class="view-toggle">
                 <button type="button" class="view-btn {{ request('view','table')==='table' ? 'active' : '' }}" onclick="setView('table')" title="{{ $lang==='ar' ? 'جدول' : 'Table' }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -54,7 +53,6 @@
     </div>
 </div>
 
-{{-- Results Count --}}
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
     <span class="text-muted" style="font-size:.82rem">
         {{ $lang === 'ar' ? 'إجمالي:' : 'Total:' }} <strong>{{ $vehicles->total() }}</strong> {{ $lang === 'ar' ? 'مركبة' : 'vehicles' }}
@@ -161,7 +159,6 @@
     @endforelse
 </div>
 
-{{-- Pagination --}}
 @if($vehicles->hasPages())
 <div style="margin-top:1rem">{{ $vehicles->appends(request()->query())->links() }}</div>
 @endif
@@ -181,12 +178,24 @@
         <input type="hidden" name="_method" id="vehicle-method" value="POST">
         <div class="modal-body">
             <div class="form-grid-2">
-                <div class="form-group"><label class="form-label">{{ __('make') }} <span class="required">*</span></label><input type="text" name="make" id="v-make" class="form-control" required></div>
-                <div class="form-group"><label class="form-label">{{ __('model') }} <span class="required">*</span></label><input type="text" name="model" id="v-model" class="form-control" required></div>
+                <div class="form-group">
+                    <label class="form-label">{{ __('make') }} <span class="required">*</span></label>
+                    <select name="make" id="v-make" class="form-control" required data-value=""></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ __('model') }} <span class="required">*</span></label>
+                    <select name="model" id="v-model" class="form-control" required data-value=""></select>
+                </div>
             </div>
             <div class="form-grid-2">
-                <div class="form-group"><label class="form-label">{{ __('year') }} <span class="required">*</span></label><input type="number" name="year" id="v-year" class="form-control" value="{{ date('Y') }}" min="1900" max="{{ date('Y')+1 }}" required></div>
-                <div class="form-group"><label class="form-label">{{ __('color') }}</label><input type="text" name="color" id="v-color" class="form-control"></div>
+                <div class="form-group">
+                    <label class="form-label">{{ __('year') }} <span class="required">*</span></label>
+                    <input type="number" name="year" id="v-year" class="form-control" value="{{ date('Y') }}" min="1900" max="{{ date('Y')+1 }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ __('color') }}</label>
+                    <select name="color" id="v-color" class="form-control" data-value=""></select>
+                </div>
             </div>
             <div class="form-grid-2">
                 <div class="form-group"><label class="form-label">VIN</label><input type="text" name="vin" id="v-vin" class="form-control font-mono" maxlength="17"></div>
@@ -238,5 +247,102 @@
     </form>
 </div>
 
+<script src="{{ asset('js/car-selector.js') }}"></script>
+<script src="{{ asset('js/plate-input.js') }}"></script>
 <script src="{{ asset('js/vehicles-index.js') }}"></script>
+<script>
+// Init car selector for modal
+var modalCarInit = false;
+
+function initModalCarSelector() {
+    if (modalCarInit) return;
+    modalCarInit = true;
+    initCarSelector('v-make', 'v-model', 'v-color');
+    initPlateInput('v-plate');
+}
+
+// Override resetVehicleForm to work with searchable selects
+var _origReset = typeof resetVehicleForm === 'function' ? resetVehicleForm : null;
+
+function resetVehicleForm() {
+    var lang = document.documentElement.getAttribute('lang') || 'en';
+    var f = document.getElementById('vehicle-form');
+    f.action = f.dataset.storeUrl;
+    document.getElementById('vehicle-method').value = 'POST';
+    document.getElementById('vehicle-modal-title').textContent = lang === 'ar' ? '🚗 إضافة مركبة' : '🚗 Add Vehicle';
+    document.getElementById('vehicle-submit-btn').textContent = lang === 'ar' ? 'حفظ' : 'Save';
+
+    // Clear simple fields
+    ['v-vin','v-plate','v-mileage','v-owner','v-phone','v-email','v-notes'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    document.getElementById('v-year').value = new Date().getFullYear();
+    document.getElementById('v-fuel').selectedIndex = 0;
+    document.getElementById('v-transmission').selectedIndex = 0;
+    document.getElementById('v-customer').value = '';
+    ['v-owner','v-phone','v-email'].forEach(function(id) {
+        var el = document.getElementById(id);
+        el.readOnly = false;
+        el.style.background = '';
+    });
+
+    // Reset searchable selects — remove pickers and re-init
+    ['v-make','v-model','v-color'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.dataset.value = '';
+            el.style.display = '';
+            if (el._pickerWrap) { el._pickerWrap.remove(); el._pickerWrap = null; }
+            el._picker = null;
+        }
+    });
+    modalCarInit = false;
+    initModalCarSelector();
+}
+
+function editVehicle(v) {
+    var lang = document.documentElement.getAttribute('lang') || 'en';
+    document.getElementById('vehicle-form').action = '/vehicles/' + v.id;
+    document.getElementById('vehicle-method').value = 'PUT';
+    document.getElementById('vehicle-modal-title').textContent = lang === 'ar' ? '🚗 تعديل مركبة' : '🚗 Edit Vehicle';
+    document.getElementById('vehicle-submit-btn').textContent = lang === 'ar' ? 'تحديث' : 'Update';
+
+    // Set data-value for searchable selects
+    document.getElementById('v-make').dataset.value = v.make || '';
+    document.getElementById('v-model').dataset.value = v.model || '';
+    document.getElementById('v-color').dataset.value = v.color || '';
+
+    // Remove old pickers and re-init with values
+    ['v-make','v-model','v-color'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.style.display = '';
+            if (el._pickerWrap) { el._pickerWrap.remove(); el._pickerWrap = null; }
+            el._picker = null;
+        }
+    });
+    modalCarInit = false;
+    initModalCarSelector();
+
+    // Fill simple fields
+    document.getElementById('v-year').value = v.year || new Date().getFullYear();
+    document.getElementById('v-vin').value = v.vin || '';
+    document.getElementById('v-plate').value = v.license_plate || '';
+    document.getElementById('v-mileage').value = v.mileage || '';
+    document.getElementById('v-owner').value = v.owner_name || '';
+    document.getElementById('v-phone').value = v.owner_phone || '';
+    document.getElementById('v-email').value = v.owner_email || '';
+    document.getElementById('v-notes').value = v.notes || '';
+    document.getElementById('v-customer').value = v.customer_id || '';
+    fillFromCustomer(document.getElementById('v-customer'));
+
+    var fuelSel = document.getElementById('v-fuel');
+    for (var i = 0; i < fuelSel.options.length; i++) fuelSel.options[i].selected = fuelSel.options[i].value === (v.fuel_type || '');
+    var transSel = document.getElementById('v-transmission');
+    for (var i = 0; i < transSel.options.length; i++) transSel.options[i].selected = transSel.options[i].value === (v.transmission || '');
+
+    openModal('vehicle-modal');
+}
+</script>
 @endsection

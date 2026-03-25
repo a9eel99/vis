@@ -1462,6 +1462,7 @@ nav[role="navigation"] svg { width: 16px; height: 16px; }
 .dark .modal-close { color:#94a3b8 }
 .dark .modal-close:hover { background:#334155;color:#e2e8f0 }
 .dark .modal-body { color:#e2e8f0 }
+.dark .perm-group { background:#0f172a !important;border-color:#334155 !important }
 
 /* Scrollbar */
 .dark ::-webkit-scrollbar-track { background:#0f172a }

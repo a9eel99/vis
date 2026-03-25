@@ -92,7 +92,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">{{ $lang === 'ar' ? 'رقم اللوحة' : 'Plate' }}</label>
-                        <input type="text" name="license_plate" class="form-control" value="{{ old('license_plate') }}">
+                        <input type="text" name="license_plate" id="new-plate" class="form-control" value="{{ old('license_plate') }}">
                     </div>
                 </div>
                 <div class="form-grid-2">
@@ -198,8 +198,10 @@
 
 @section('modals')
 <script src="{{ asset('js/car-selector.js') }}"></script>
+<script src="{{ asset('js/plate-input.js') }}"></script>
 <script src="{{ asset('js/inspections-create.js') }}"></script>
 <script>
     initCarSelector('new-car-make', 'new-car-model', 'new-car-color');
+    initPlateInput('new-plate');
 </script>
 @endsection
