@@ -6,8 +6,44 @@
 var carMakesCache = null;
 var carColorsCache = null;
 
+function isElementVisible(el) {
+    var node = el;
+    while (node && node !== document.body) {
+        if (node.style && node.style.display === 'none') return false;
+        node = node.parentElement;
+    }
+    return true;
+}
+
 function initCarSelector(makeId, modelId, colorId) {
     var lang = document.documentElement.getAttribute('lang') || 'en';
+
+    // Setup form validation for required selects
+    var makeEl = document.getElementById(makeId);
+    if (makeEl) {
+        var form = makeEl.closest('form');
+        if (form && !form._carSelectorValidation) {
+            form._carSelectorValidation = true;
+            form.addEventListener('submit', function(e) {
+                var requiredSelects = form.querySelectorAll('select[data-ss-required]');
+                for (var i = 0; i < requiredSelects.length; i++) {
+                    var sel = requiredSelects[i];
+                    // Skip if inside a hidden container
+                    if (!isElementVisible(sel)) continue;
+
+                    if (!sel.value) {
+                        e.preventDefault();
+                        var wrapper = sel.parentNode.querySelector('.ss-btn');
+                        if (wrapper) {
+                            wrapper.style.borderColor = 'var(--danger)';
+                            wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                        return false;
+                    }
+                }
+            });
+        }
+    }
 
     // Load makes
     fetch('/api/car-data/makes')
@@ -98,8 +134,16 @@ function createSearchSelect(originalSelect, options, placeholder, showColor) {
     var isRtl = lang === 'ar';
     var isDark = document.documentElement.classList.contains('dark');
 
-    // Hide original select
-    originalSelect.style.display = 'none';
+    // Hide original select but keep it accessible for form submission
+    var isRequired = originalSelect.hasAttribute('required') || originalSelect.hasAttribute('data-ss-required');
+    originalSelect.removeAttribute('required');
+    originalSelect.style.position = 'absolute';
+    originalSelect.style.opacity = '0';
+    originalSelect.style.height = '0';
+    originalSelect.style.width = '0';
+    originalSelect.style.overflow = 'hidden';
+    originalSelect.style.pointerEvents = 'none';
+    originalSelect.tabIndex = -1;
 
     // Create wrapper
     var wrap = document.createElement('div');
@@ -180,6 +224,7 @@ function createSearchSelect(originalSelect, options, placeholder, showColor) {
         originalSelect.innerHTML = '<option value="' + o.value + '" selected>' + o.label + '</option>';
         originalSelect.value = o.value;
         originalSelect.dispatchEvent(new Event('change'));
+        btn.style.borderColor = '';
 
         var labelEl = btn.querySelector('.ss-label');
         if (showColor && o.hex) {
@@ -229,6 +274,12 @@ function createSearchSelect(originalSelect, options, placeholder, showColor) {
         }
     };
     originalSelect._picker = picker;
+
+    // Mark as required for form validation
+    if (isRequired) {
+        btn.style.borderColor = 'var(--gray-300)';
+        originalSelect.setAttribute('data-ss-required', '1');
+    }
 
     // Dark mode support
     if (isDark) {

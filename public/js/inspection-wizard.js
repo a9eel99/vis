@@ -30,6 +30,66 @@ function selectOption(btn) {
         badge.textContent = btn.dataset.score + '/' + parseInt(btn.dataset.max);
         badge.className = 'wq-score-badge ' + (btn.dataset.score >= btn.dataset.max * 0.75 ? 'good' : btn.dataset.score >= btn.dataset.max * 0.5 ? 'ok' : 'bad');
     }
+    // Hide custom panel if open
+    var panel = document.getElementById('custom-panel-' + qId);
+    if (panel) {
+        panel.style.display = 'none';
+        var scoreInp = document.getElementById('custom-score-input-' + qId);
+        if (scoreInp) scoreInp.value = '';
+    }
+    updateLiveScore();
+}
+
+function toggleCustomOption(qId) {
+    var panel = document.getElementById('custom-panel-' + qId);
+    var customBtn = panel.previousElementSibling.querySelector('.wq-custom-btn');
+    var isOpen = panel.style.display !== 'none';
+
+    if (isOpen) {
+        // Close custom panel — clear custom score
+        panel.style.display = 'none';
+        if (customBtn) customBtn.classList.remove('selected');
+        document.getElementById('custom-score-input-' + qId).value = '';
+    } else {
+        // Open custom panel — deselect other options
+        var grid = panel.previousElementSibling;
+        grid.querySelectorAll('.wq-option').forEach(function(b) { b.classList.remove('selected'); });
+        if (customBtn) customBtn.classList.add('selected');
+        panel.style.display = 'block';
+
+        // Set answer to custom text
+        var textEl = document.getElementById('custom-text-' + qId);
+        if (textEl) textEl.focus();
+
+        // Update score from slider
+        var slider = document.getElementById('custom-score-' + qId);
+        if (slider) updateCustomScore(qId, slider.value, parseInt(slider.max));
+    }
+}
+
+function updateCustomScore(qId, value, max) {
+    var label = document.getElementById('custom-score-label-' + qId);
+    if (label) label.textContent = value + '/' + max;
+
+    // Update hidden score input
+    var scoreInput = document.getElementById('custom-score-input-' + qId);
+    if (scoreInput) scoreInput.value = value;
+
+    // Update the question score
+    var qScoreInput = document.getElementById('score-' + qId);
+    if (qScoreInput) qScoreInput.value = value;
+
+    // Set answer to the custom text
+    var textEl = document.getElementById('custom-text-' + qId);
+    var ddInput = document.getElementById('dd-' + qId);
+    if (textEl && ddInput) ddInput.value = textEl.value || ('custom:' + value);
+
+    // Update badge
+    var badge = document.getElementById('qscore-' + qId);
+    if (badge) {
+        badge.textContent = value + '/' + max;
+        badge.className = 'wq-score-badge ' + (value >= max * 0.75 ? 'good' : value >= max * 0.5 ? 'ok' : 'bad');
+    }
     updateLiveScore();
 }
 

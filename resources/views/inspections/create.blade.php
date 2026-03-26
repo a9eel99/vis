@@ -59,15 +59,15 @@
                 <div class="form-grid-2">
                     <div class="form-group">
                         <label class="form-label">{{ $lang === 'ar' ? 'الشركة المصنّعة' : 'Make' }} *</label>
-                        <select name="make" id="new-car-make" class="form-control new-field" required
-                            data-value="{{ old('make') }}">
+                        <select name="make" id="new-car-make" class="form-control new-field"
+                            data-value="{{ old('make') }}" data-ss-required="1">
                             <option value="">{{ $lang === 'ar' ? 'جاري التحميل...' : 'Loading...' }}</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">{{ $lang === 'ar' ? 'الموديل' : 'Model' }} *</label>
-                        <select name="model" id="new-car-model" class="form-control new-field" required
-                            data-value="{{ old('model') }}">
+                        <select name="model" id="new-car-model" class="form-control new-field"
+                            data-value="{{ old('model') }}" data-ss-required="1">
                             <option value="">{{ $lang === 'ar' ? 'اختر الشركة أولاً' : 'Select make first' }}</option>
                         </select>
                     </div>

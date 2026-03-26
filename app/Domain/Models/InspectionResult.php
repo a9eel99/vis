@@ -16,6 +16,7 @@ class InspectionResult extends Model
         'score',
         'is_critical_fail',
         'remarks',
+        'remarks_score',
     ];
 
     protected function casts(): array
@@ -23,6 +24,7 @@ class InspectionResult extends Model
         return [
             'score' => 'decimal:2',
             'is_critical_fail' => 'boolean',
+            'remarks_score' => 'integer',
         ];
     }
 

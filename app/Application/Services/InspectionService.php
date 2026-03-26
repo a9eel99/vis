@@ -82,6 +82,7 @@ class InspectionService
             foreach ($answers as $questionId => $answerData) {
                 $answer = is_array($answerData) ? ($answerData['answer'] ?? '') : $answerData;
                 $remarks = is_array($answerData) ? ($answerData['remarks'] ?? null) : null;
+                $remarksScore = is_array($answerData) ? ($answerData['remarks_score'] ?? null) : null;
 
                 $result = InspectionResult::updateOrCreate(
                     [
@@ -91,14 +92,21 @@ class InspectionService
                     [
                         'answer' => $answer,
                         'remarks' => $remarks,
+                        'remarks_score' => $remarksScore ? (int) $remarksScore : null,
                     ]
                 );
 
                 if ($isScored) {
-                    // Score the answer
-                    $score = $this->scoringService->scoreAnswer($result->load('question'));
                     $qType = $result->question?->type?->value ?? '';
                     $isScorable = !in_array($qType, ['text', 'photo', 'video']);
+
+                    // If custom option used (remarks_score set), use it as the score
+                    if ($remarksScore !== null && $remarksScore !== '') {
+                        $score = (float) $remarksScore;
+                    } else {
+                        $score = $this->scoringService->scoreAnswer($result->load('question'));
+                    }
+
                     $isCriticalFail = $isScorable && $result->question?->is_critical && $score < ($result->question->max_score * 0.5);
 
                     $result->update([

@@ -18,6 +18,7 @@ class SubmitInspectionRequest extends FormRequest
             'answers.*' => 'nullable',
             'answers.*.answer' => 'nullable|string|max:5000',
             'answers.*.remarks' => 'nullable|string|max:1000',
+            'answers.*.remarks_score' => 'nullable|integer|min:0|max:100',
             'answers.*.score' => 'nullable|numeric|min:0|max:100',
             'media' => 'nullable|array',
             'media.*' => 'nullable|array',

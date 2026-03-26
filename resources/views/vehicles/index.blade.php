@@ -180,11 +180,11 @@
             <div class="form-grid-2">
                 <div class="form-group">
                     <label class="form-label">{{ __('make') }} <span class="required">*</span></label>
-                    <select name="make" id="v-make" class="form-control" required data-value=""></select>
+                    <select name="make" id="v-make" class="form-control" data-value="" data-ss-required="1"></select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">{{ __('model') }} <span class="required">*</span></label>
-                    <select name="model" id="v-model" class="form-control" required data-value=""></select>
+                    <select name="model" id="v-model" class="form-control" data-value="" data-ss-required="1"></select>
                 </div>
             </div>
             <div class="form-grid-2">

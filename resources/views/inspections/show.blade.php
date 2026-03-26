@@ -257,6 +257,11 @@
                 <div class="ins-q-remark">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
                     {{ $result->remarks }}
+                    @if($result->remarks_score !== null)
+                        <span style="display:inline-flex;align-items:center;gap:3px;margin-right:8px;margin-left:8px;padding:1px 8px;border-radius:10px;font-size:.72rem;font-weight:700;background:{{ $result->remarks_score >= 7 ? 'rgba(239,68,68,.15);color:#ef4444' : ($result->remarks_score >= 4 ? 'rgba(245,158,11,.15);color:#f59e0b' : 'rgba(34,197,94,.15);color:#22c55e') }}">
+                            ⭐ {{ $result->remarks_score }}/10
+                        </span>
+                    @endif
                 </div>
                 @endif
                 @if($isScored && $result?->is_critical_fail)

@@ -13,16 +13,16 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">{{ __('make') }} <span class="required">*</span></label>
-                    <select name="make" id="v-car-make" class="form-control @error('make') is-invalid @enderror" required
-                        data-value="{{ old('make', $vehicle->make) }}">
+                    <select name="make" id="v-car-make" class="form-control @error('make') is-invalid @enderror"
+                        data-value="{{ old('make', $vehicle->make) }}" data-ss-required="1">
                         <option value="">{{ app()->getLocale() === 'ar' ? 'جاري التحميل...' : 'Loading...' }}</option>
                     </select>
                     @error('make') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">{{ __('model') }} <span class="required">*</span></label>
-                    <select name="model" id="v-car-model" class="form-control @error('model') is-invalid @enderror" required
-                        data-value="{{ old('model', $vehicle->model) }}">
+                    <select name="model" id="v-car-model" class="form-control @error('model') is-invalid @enderror"
+                        data-value="{{ old('model', $vehicle->model) }}" data-ss-required="1">
                         <option value="">{{ app()->getLocale() === 'ar' ? 'جاري التحميل...' : 'Loading...' }}</option>
                     </select>
                     @error('model') <div class="invalid-feedback">{{ $message }}</div> @enderror

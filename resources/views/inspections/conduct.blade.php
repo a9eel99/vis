@@ -141,6 +141,26 @@
                                         </button>
                                     @endforeach
                                 @endif
+
+                                {{-- Custom Option Button --}}
+                                <button type="button"
+                                    class="wq-option wq-custom-btn {{ ($existing?->remarks_score !== null) ? 'selected' : '' }}"
+                                    onclick="toggleCustomOption('{{ $question->id }}')"
+                                    style="border-style:dashed">
+                                    <span class="opt-indicator" style="background:var(--gray-400)"></span>
+                                    ✚ {{ $lang === 'ar' ? 'حالة أخرى' : 'Other' }}
+                                </button>
+                            </div>
+
+                            {{-- Custom Option Panel (hidden by default) --}}
+                            <div class="wq-custom-panel" id="custom-panel-{{ $question->id }}" style="display:{{ ($existing?->remarks_score !== null) ? 'block' : 'none' }};margin-top:8px;padding:10px;background:var(--gray-50);border:1px dashed var(--gray-300);border-radius:8px">
+                                <textarea id="custom-text-{{ $question->id }}" class="form-control" rows="2" placeholder="{{ $lang === 'ar' ? '📝 صف الحالة...' : '📝 Describe the condition...' }}" style="resize:vertical;font-size:.85rem;margin-bottom:8px" oninput="var dd=document.getElementById('dd-{{ $question->id }}');if(dd)dd.value=this.value">{{ ($existing?->remarks_score !== null) ? ($existing?->answer ?? '') : '' }}</textarea>
+                                <div style="display:flex;align-items:center;gap:8px">
+                                    <span style="font-size:.8rem;font-weight:600;white-space:nowrap">⭐ {{ $lang === 'ar' ? 'التقييم:' : 'Score:' }}</span>
+                                    <input type="range" id="custom-score-{{ $question->id }}" min="0" max="{{ intval($question->max_score) }}" value="{{ $existing?->remarks_score ?? 0 }}" class="remarks-range" style="flex:1;height:6px;accent-color:var(--accent)" oninput="updateCustomScore('{{ $question->id }}', this.value, {{ intval($question->max_score) }})">
+                                    <span id="custom-score-label-{{ $question->id }}" style="font-size:.85rem;font-weight:700;min-width:40px;color:var(--accent)">{{ ($existing?->remarks_score ?? 0) }}/{{ intval($question->max_score) }}</span>
+                                    <input type="hidden" name="answers[{{ $question->id }}][remarks_score]" id="custom-score-input-{{ $question->id }}" value="{{ $existing?->remarks_score ?? '' }}">
+                                </div>
                             </div>
                             @break
 
@@ -177,7 +197,7 @@
                         <input type="hidden" name="answers[{{ $question->id }}][score]" class="score-input" value="{{ $existing?->score ?? '' }}" data-weight="{{ $question->weight }}" data-max-score="{{ $question->max_score }}" id="score-{{ $question->id }}">
                     @endif
 
-                    {{-- Remarks --}}
+                    {{-- Remarks (available for all question types) --}}
                     <div class="wq-remarks">
                         <input type="text" name="answers[{{ $question->id }}][remarks]" class="form-control" placeholder="{{ $lang === 'ar' ? '💬 ملاحظات...' : '💬 Remarks...' }}" value="{{ $existing?->remarks ?? '' }}">
                     </div>
