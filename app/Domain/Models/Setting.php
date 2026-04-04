@@ -32,7 +32,7 @@ class Setting extends Model
     {
         static::updateOrCreate(['key' => $key], ['value' => $value]);
         Cache::forget("setting.{$key}");
-        Cache::forget('settings.all');
+        Cache::forget('settings.all'); // مسح الـ cache الكلي أيضاً
     }
 
     /**

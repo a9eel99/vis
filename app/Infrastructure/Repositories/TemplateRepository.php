@@ -46,9 +46,9 @@ class TemplateRepository extends BaseRepository implements TemplateRepositoryInt
     {
         $original = $this->getWithFullStructure($id);
 
-        $template = $original->replicate();
-        $template->name = $original->name . ' (Copy)';
-        $template->version = 1;
+        $template             = $original->replicate();
+        $template->name       = $original->name . ' (Copy)';
+        $template->version    = $original->version + 1;
         $template->created_by = auth()->id();
         $template->save();
 

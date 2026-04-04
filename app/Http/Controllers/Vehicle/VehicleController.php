@@ -18,30 +18,12 @@ class VehicleController extends Controller
 
     public function index(Request $request)
     {
-        $query = \App\Domain\Models\Vehicle::withCount('inspections');
-
-        if ($search = $request->get('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('make', 'like', "%{$search}%")
-                  ->orWhere('model', 'like', "%{$search}%")
-                  ->orWhere('vin', 'like', "%{$search}%")
-                  ->orWhere('license_plate', 'like', "%{$search}%")
-                  ->orWhere('owner_name', 'like', "%{$search}%");
-            });
-        }
-
-        if ($fuel = $request->get('fuel_type')) {
-            $query->where('fuel_type', $fuel);
-        }
-
-        switch ($request->get('sort', 'latest')) {
-            case 'name': $query->orderBy('make')->orderBy('model'); break;
-            case 'mileage': $query->orderByDesc('mileage'); break;
-            case 'inspections': $query->orderByDesc('inspections_count'); break;
-            default: $query->orderByDesc('created_at');
-        }
-
-        $vehicles = $query->paginate(20);
+        $vehicles = $this->vehicleService->filter(
+            search:   $request->get('search'),
+            fuelType: $request->get('fuel_type'),
+            sort:     $request->get('sort', 'latest'),
+            perPage:  20
+        );
 
         return view('vehicles.index', compact('vehicles'));
     }
@@ -61,25 +43,13 @@ class VehicleController extends Controller
                 // Link or create customer
                 if ($request->filled('customer_id')) {
                     $vehicle->update(['customer_id' => $request->input('customer_id')]);
-                } elseif ($request->filled('owner_name') || $request->filled('owner_phone')) {
-                    // ابحث عن عميل موجود بنفس الهاتف أولاً
-                    $customer = \App\Domain\Models\Customer::when(
-                        $request->filled('owner_phone'),
-                        fn($q) => $q->where('phone', $request->input('owner_phone'))
-                    )->when(
-                        !$request->filled('owner_phone') && $request->filled('owner_name'),
-                        fn($q) => $q->where('name', $request->input('owner_name'))
-                    )->first();
-
-                    if (!$customer) {
-                        $customer = \App\Domain\Models\Customer::create([
-                            'name'       => $request->input('owner_name', ''),
-                            'phone'      => $request->input('owner_phone'),
-                            'email'      => $request->input('owner_email'),
-                            'created_by' => auth()->id(),
-                        ]);
-                    }
-
+                } elseif ($request->filled('owner_name')) {
+                    $customer = \App\Domain\Models\Customer::create([
+                        'name' => $request->input('owner_name'),
+                        'phone' => $request->input('owner_phone'),
+                        'email' => $request->input('owner_email'),
+                        'created_by' => auth()->id(),
+                    ]);
                     $vehicle->update(['customer_id' => $customer->id]);
                 }
 
@@ -122,24 +92,12 @@ class VehicleController extends Controller
                 if ($request->filled('customer_id')) {
                     $vehicle->update(['customer_id' => $request->input('customer_id')]);
                 } elseif ($request->filled('owner_name') && !$vehicle->customer_id) {
-                    // ابحث عن عميل موجود أولاً
-                    $customer = \App\Domain\Models\Customer::when(
-                        $request->filled('owner_phone'),
-                        fn($q) => $q->where('phone', $request->input('owner_phone'))
-                    )->when(
-                        !$request->filled('owner_phone'),
-                        fn($q) => $q->where('name', $request->input('owner_name'))
-                    )->first();
-
-                    if (!$customer) {
-                        $customer = \App\Domain\Models\Customer::create([
-                            'name'       => $request->input('owner_name'),
-                            'phone'      => $request->input('owner_phone'),
-                            'email'      => $request->input('owner_email'),
-                            'created_by' => auth()->id(),
-                        ]);
-                    }
-
+                    $customer = \App\Domain\Models\Customer::create([
+                        'name' => $request->input('owner_name'),
+                        'phone' => $request->input('owner_phone'),
+                        'email' => $request->input('owner_email'),
+                        'created_by' => auth()->id(),
+                    ]);
                     $vehicle->update(['customer_id' => $customer->id]);
                 } else {
                     $vehicle->update(['customer_id' => $request->input('customer_id') ?: null]);

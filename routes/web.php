@@ -95,7 +95,11 @@ Route::middleware('auth')->group(function () {
     Route::get('audit-logs', [\App\Http\Controllers\AuditLog\AuditLogController::class, 'index'])->name('audit-logs.index');
 
     // Finance / Revenue
-    Route::get('finance', [\App\Http\Controllers\Finance\RevenueController::class, 'index'])->name('finance.index');
-    Route::post('finance/{id}/paid', [\App\Http\Controllers\Finance\RevenueController::class, 'markPaid'])->name('finance.markPaid');
-    Route::post('finance/{id}/unpaid', [\App\Http\Controllers\Finance\RevenueController::class, 'markUnpaid'])->name('finance.markUnpaid');
+    Route::middleware('can:view finance')->group(function () {
+        Route::get('finance', [\App\Http\Controllers\Finance\RevenueController::class, 'index'])->name('finance.index');
+    });
+    Route::middleware('can:manage finance')->group(function () {
+        Route::post('finance/{id}/paid',   [\App\Http\Controllers\Finance\RevenueController::class, 'markPaid'])->name('finance.markPaid');
+        Route::post('finance/{id}/unpaid', [\App\Http\Controllers\Finance\RevenueController::class, 'markUnpaid'])->name('finance.markUnpaid');
+    });
 });

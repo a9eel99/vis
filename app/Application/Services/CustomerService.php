@@ -27,7 +27,10 @@ class CustomerService
 
     public function find(string $id): Customer
     {
-        return Customer::with(['vehicles.inspections', 'vehicles.latestInspection'])
+        return Customer::with([
+            'vehicles' => fn($q) => $q->withCount('inspections'),
+            'vehicles.latestInspection',
+        ])
             ->withCount(['vehicles', 'inspections'])
             ->findOrFail($id);
     }

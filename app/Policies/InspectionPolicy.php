@@ -32,7 +32,12 @@ class InspectionPolicy
             return true;
         }
 
-        return $user->hasRole('Inspector') && $user->id === $inspection->inspector_id;
+        if (!$user->hasRole('Inspector')) {
+            return false;
+        }
+        return $user->id === $inspection->inspector_id
+            || $user->id === $inspection->created_by
+            || $inspection->inspector_id === null;
     }
 
     public function cancel(User $user, Inspection $inspection): bool

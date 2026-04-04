@@ -19,7 +19,14 @@ class VehicleRequest extends FormRequest
             'make' => 'required|string|max:100',
             'model' => 'required|string|max:100',
             'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
-            'vin' => 'nullable|string|max:17|unique:vehicles,vin,' . $vehicleId,
+            'vin' => [
+                'nullable',
+                'string',
+                'max:17',
+                \Illuminate\Validation\Rule::unique('vehicles', 'vin')
+                    ->ignore($vehicleId)
+                    ->whereNull('deleted_at'),
+            ],
             'license_plate' => 'nullable|string|max:20',
             'color' => 'nullable|string|max:50',
             'mileage' => 'nullable|integer|min:0',
