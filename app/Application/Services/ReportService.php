@@ -26,11 +26,6 @@ class ReportService
 
         $lang = app()->getLocale();
 
-        // تجميع الصور حسب question_id لتجنب N+1
-        $mediaByQuestion = $inspection->results
-            ->flatMap(fn($r) => $r->media ?? collect())
-            ->groupBy('question_id');
-
         // Organize results by section
         $sectionResults = [];
         foreach ($inspection->template->sections as $section) {
@@ -42,33 +37,10 @@ class ReportService
             foreach ($section->questions as $question) {
                 $result = $inspection->results->firstWhere('question_id', $question->id);
 
-                // بناء قائمة الصور لهذا السؤال
-                $mediaItems = [];
-                foreach ($mediaByQuestion->get($question->id, collect()) as $m) {
-                    if ($m->isImage()) {
-                        $fullPath = storage_path('app/public/' . $m->path);
-                        if (file_exists($fullPath)) {
-                            $ext  = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
-                            $mime = in_array($ext, ['jpg', 'jpeg']) ? 'image/jpeg' : 'image/' . $ext;
-                            $mediaItems[] = [
-                                'type' => 'image',
-                                'src'  => 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($fullPath)),
-                                'name' => $m->original_name,
-                            ];
-                        }
-                    } else {
-                        $mediaItems[] = [
-                            'type' => 'video',
-                            'src'  => null,
-                            'name' => $m->original_name,
-                        ];
-                    }
-                }
-
                 $sectionResults[$section->id]['results'][] = [
                     'question' => $question,
-                    'result'   => $result,
-                    'media'    => $mediaItems,
+                    'result' => $result,
+                    'media' => [], // Photos removed from PDF — shown on share page instead
                 ];
             }
         }
@@ -142,20 +114,26 @@ class ReportService
             ],
         ] : [];
 
+        // تأكد من وجود المجلد المؤقت لـ mPDF
+        $tempDir = storage_path('app/mpdf-temp');
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0775, true);
+        }
+
         $mpdf = new Mpdf([
-            'mode' => 'utf-8',
-            'format' => 'A4',
-            'default_font' => $hasCairo ? 'cairo' : 'XBRiyaz',
-            'default_font_size' => 10,
-            'margin_left' => 10,
-            'margin_right' => 10,
-            'margin_top' => 10,
-            'margin_bottom' => 10,
-            'autoArabic' => true,
-            'autoLangToFont' => true,
-            'tempDir' => storage_path('app/mpdf-temp'),
-            'fontDir' => array_merge($fontDirs, $customFontDirs),
-            'fontdata' => $fontData + $customFontData,
+            'mode'             => 'utf-8',
+            'format'           => 'A4',
+            'default_font'     => $hasCairo ? 'cairo' : 'XBRiyaz',
+            'default_font_size'=> 10,
+            'margin_left'      => 10,
+            'margin_right'     => 10,
+            'margin_top'       => 10,
+            'margin_bottom'    => 10,
+            'autoArabic'       => true,
+            'autoLangToFont'   => true,
+            'tempDir'          => $tempDir,
+            'fontDir'          => array_merge($fontDirs, $customFontDirs),
+            'fontdata'         => $fontData + $customFontData,
         ]);
 
         // Set direction based on language

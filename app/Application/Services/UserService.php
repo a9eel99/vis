@@ -45,22 +45,10 @@ class UserService
     {
         $user = User::findOrFail($id);
 
-        if ($user->hasRole('Super Admin') && auth()->id() !== $user->id) {
-            abort(403, app()->getLocale() === 'ar'
-                ? 'لا يمكن تعديل حساب Super Admin.'
-                : 'Cannot modify Super Admin account.');
-        }
-
-        if (isset($data['role']) && $data['role'] === 'Super Admin' && !auth()->user()->hasRole('Super Admin')) {
-            abort(403, app()->getLocale() === 'ar'
-                ? 'لا يمكنك إعطاء دور Super Admin.'
-                : 'Cannot assign Super Admin role.');
-        }
-
         $updateData = [
-            'name'      => $data['name'],
-            'email'     => $data['email'],
-            'phone'     => $data['phone'] ?? null,
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'phone' => $data['phone'] ?? null,
             'is_active' => $data['is_active'] ?? true,
         ];
 
@@ -81,21 +69,26 @@ class UserService
 
     public function delete(string $id): bool
     {
-        $user = User::findOrFail($id);
-
-        if ($user->hasRole('Super Admin')) {
-            abort(403, app()->getLocale() === 'ar'
-                ? 'لا يمكن حذف حساب Super Admin.'
-                : 'Cannot delete Super Admin account.');
-        }
-
         AuditLog::log('user_deleted', User::class, $id);
-        return $user->delete();
+        return User::findOrFail($id)->delete();
     }
 
     public function toggleActive(string $id): User
     {
         $user = User::findOrFail($id);
+
+        if ($user->hasRole('Super Admin')) {
+            abort(403, app()->getLocale() === 'ar'
+                ? 'لا يمكن تعطيل حساب Super Admin.'
+                : 'Cannot deactivate Super Admin account.');
+        }
+
+        if ($user->id === auth()->id()) {
+            abort(403, app()->getLocale() === 'ar'
+                ? 'لا يمكنك تعطيل حسابك الخاص.'
+                : 'You cannot deactivate your own account.');
+        }
+
         $user->update(['is_active' => !$user->is_active]);
         return $user->fresh();
     }

@@ -48,8 +48,12 @@
     @endforeach
 </div>
 
-<form method="POST" action="{{ route('inspections.submit', $inspection) }}" id="inspection-form" data-total-steps="{{ $totalSections }}" data-scoring-mode="{{ $isScored ? 'scored' : 'descriptive' }}" enctype="multipart/form-data">
-    @csrf
+<form method="POST" action="{{ route('inspections.submit', $inspection) }}"
+          id="inspection-form"
+          data-total-steps="{{ $totalSections }}"
+          data-scoring-mode="{{ $inspection->template->scoring_mode ?? 'scored' }}"
+          enctype="multipart/form-data">
+              @csrf
 
     @foreach($sections as $sIdx => $section)
     <div class="wizard-panel {{ $sIdx === 0 ? 'active' : '' }}" id="panel-{{ $sIdx }}">
