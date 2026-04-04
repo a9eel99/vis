@@ -74,32 +74,47 @@ class InspectionController extends Controller
                 $data = $request->validated();
 
                 if ($request->input('vehicle_mode') === 'new') {
-                    $customer = null;
-                    $ownerName = $request->input('owner_name');
+                    $ownerName  = $request->input('owner_name');
                     $ownerPhone = $request->input('owner_phone');
+                    $customerId = $request->input('customer_id');
 
-                    if ($ownerName || $ownerPhone) {
-                        $customer = Customer::create([
-                            'name' => $ownerName ?? '',
-                            'phone' => $ownerPhone,
-                            'email' => $request->input('owner_email'),
-                            'created_by' => auth()->id(),
-                        ]);
+                    // إذا اختار عميل موجود استخدمه — وإلا ابحث أو أنشئ
+                    if ($customerId) {
+                        $customer = Customer::find($customerId);
+                    } elseif ($ownerName || $ownerPhone) {
+                        // ابحث عن عميل موجود بنفس الهاتف أولاً
+                        $customer = Customer::when(
+                            $ownerPhone,
+                            fn($q) => $q->where('phone', $ownerPhone),
+                            fn($q) => $q->where('name', $ownerName ?? '')
+                        )->first();
+
+                        if (!$customer) {
+                            $customer = Customer::create([
+                                'name'       => $ownerName ?? '',
+                                'phone'      => $ownerPhone,
+                                'email'      => $request->input('owner_email'),
+                                'created_by' => auth()->id(),
+                            ]);
+                        }
+                    } else {
+                        $customer = null;
                     }
 
                     $vehicle = Vehicle::create([
-                        'make' => $request->input('make'),
-                        'model' => $request->input('model'),
-                        'year' => $request->input('year'),
-                        'color' => $request->input('color'),
-                        'vin' => $request->input('vin'),
+                        'make'          => $request->input('make'),
+                        'model'         => $request->input('model'),
+                        'year'          => $request->input('year'),
+                        'color'         => $request->input('color'),
+                        'vin'           => $request->input('vin'),
                         'license_plate' => $request->input('license_plate'),
-                        'mileage' => $request->input('mileage'),
-                        'fuel_type' => $request->input('fuel_type'),
-                        'customer_id' => $customer?->id,
-                        'owner_name' => $ownerName,
-                        'owner_phone' => $ownerPhone,
-                        'owner_email' => $request->input('owner_email'),
+                        'mileage'       => $request->input('mileage'),
+                        'fuel_type'     => $request->input('fuel_type'),
+                        'customer_id'   => $customer?->id,
+                        'owner_name'    => $customer?->name  ?? $ownerName,
+                        'owner_phone'   => $customer?->phone ?? $ownerPhone,
+                        'owner_email'   => $customer?->email ?? $request->input('owner_email'),
+                        'created_by'    => auth()->id(),
                     ]);
 
                     $data['vehicle_id'] = $vehicle->id;

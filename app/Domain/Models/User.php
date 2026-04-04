@@ -53,11 +53,13 @@ class User extends Authenticatable
 
     public function getInitialsAttribute(): string
     {
-        $words = explode(' ', $this->name);
+        $words    = explode(' ', trim($this->name));
         $initials = '';
         foreach (array_slice($words, 0, 2) as $word) {
-            $initials .= strtoupper(substr($word, 0, 1));
+            if (mb_strlen($word) > 0) {
+                $initials .= mb_strtoupper(mb_substr($word, 0, 1, 'UTF-8'), 'UTF-8');
+            }
         }
-        return $initials;
+        return $initials ?: '?';
     }
 }

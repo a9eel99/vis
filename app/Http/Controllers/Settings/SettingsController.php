@@ -113,6 +113,12 @@ class SettingsController extends Controller
 
             Setting::clearCache();
             Cache::forget('dashboard_stats');
+            Cache::forget('dashboard_recent');
+            Cache::forget('dashboard_today_count');
+            Cache::forget('dashboard_today_completed');
+            Cache::forget('dashboard_inspectors');
+            // مسح cache العتبات عند تغيير الإعدادات
+            Cache::forget('vis.scoring.thresholds');
 
             $lang = app()->getLocale();
             return redirect()->route('settings.index')

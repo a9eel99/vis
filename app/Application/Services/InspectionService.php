@@ -97,26 +97,41 @@ class InspectionService
                 );
 
                 if ($isScored) {
-                    $qType = $result->question?->type?->value ?? '';
+                    $qType      = $result->question?->type?->value ?? '';
                     $isScorable = !in_array($qType, ['text', 'photo', 'video']);
 
-                    // If custom option used (remarks_score set), use it as the score
-                    if ($remarksScore !== null && $remarksScore !== '') {
-                        $score = (float) $remarksScore;
+                    if ($isScorable) {
+                        // أولوية الـ score:
+                        // 1. remarks_score إذا موجود (custom option من الـ wizard)
+                        // 2. score مباشر من الـ wizard (answers[id][score])
+                        // 3. ScoringService يحسب من الـ answer
+                        if ($remarksScore !== null && $remarksScore !== '') {
+                            $score = (float) $remarksScore;
+                        } elseif (isset($answerData['score']) && $answerData['score'] !== '' && $answerData['score'] !== null) {
+                            $score = (float) $answerData['score'];
+                            // تأكد الـ score ضمن الحد المسموح
+                            $score = min($score, (float) ($result->question?->max_score ?? $score));
+                        } else {
+                            $score = $this->scoringService->scoreAnswer($result->load('question'));
+                        }
+
+                        $isCriticalFail = $result->question?->is_critical
+                            && $score < ($result->question->max_score * 0.5);
+
+                        $result->update([
+                            'score'          => $score,
+                            'is_critical_fail' => $isCriticalFail,
+                        ]);
                     } else {
-                        $score = $this->scoringService->scoreAnswer($result->load('question'));
+                        $result->update([
+                            'score'          => null,
+                            'is_critical_fail' => false,
+                        ]);
                     }
-
-                    $isCriticalFail = $isScorable && $result->question?->is_critical && $score < ($result->question->max_score * 0.5);
-
-                    $result->update([
-                        'score' => $score,
-                        'is_critical_fail' => $isCriticalFail,
-                    ]);
                 } else {
                     // Descriptive mode — no scoring
                     $result->update([
-                        'score' => null,
+                        'score'          => null,
                         'is_critical_fail' => false,
                     ]);
                 }

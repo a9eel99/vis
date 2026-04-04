@@ -27,7 +27,7 @@ class InspectionRequest extends FormRequest
             $rules['model'] = 'required|string|max:100';
             $rules['year'] = 'required|integer|min:1900|max:' . (date('Y') + 1);
             $rules['color'] = 'nullable|string|max:50';
-            $rules['vin'] = 'nullable|string|max:17|unique:vehicles,vin';
+            $rules['vin'] = 'nullable|string|max:17|unique:vehicles,vin,NULL,id,deleted_at,NULL';
             $rules['license_plate'] = 'nullable|string|max:20';
             $rules['mileage'] = 'nullable|integer|min:0';
             $rules['fuel_type'] = 'nullable|in:gasoline,diesel,electric,hybrid,lpg';

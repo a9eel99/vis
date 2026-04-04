@@ -26,6 +26,11 @@ class ReportService
 
         $lang = app()->getLocale();
 
+        // تجميع الصور حسب question_id لتجنب N+1
+        $mediaByQuestion = $inspection->results
+            ->flatMap(fn($r) => $r->media ?? collect())
+            ->groupBy('question_id');
+
         // Organize results by section
         $sectionResults = [];
         foreach ($inspection->template->sections as $section) {
@@ -37,28 +42,45 @@ class ReportService
             foreach ($section->questions as $question) {
                 $result = $inspection->results->firstWhere('question_id', $question->id);
 
+                // بناء قائمة الصور لهذا السؤال
+                $mediaItems = [];
+                foreach ($mediaByQuestion->get($question->id, collect()) as $m) {
+                    if ($m->isImage()) {
+                        $fullPath = storage_path('app/public/' . $m->path);
+                        if (file_exists($fullPath)) {
+                            $ext  = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+                            $mime = in_array($ext, ['jpg', 'jpeg']) ? 'image/jpeg' : 'image/' . $ext;
+                            $mediaItems[] = [
+                                'type' => 'image',
+                                'src'  => 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($fullPath)),
+                                'name' => $m->original_name,
+                            ];
+                        }
+                    } else {
+                        $mediaItems[] = [
+                            'type' => 'video',
+                            'src'  => null,
+                            'name' => $m->original_name,
+                        ];
+                    }
+                }
+
                 $sectionResults[$section->id]['results'][] = [
                     'question' => $question,
-                    'result' => $result,
-                    'media' => [], // Photos removed from PDF — shown on share page instead
+                    'result'   => $result,
+                    'media'    => $mediaItems,
                 ];
             }
         }
 
         // Company info - read from DB settings first, fallback to config
         $company = [
-            'name'    => \App\Domain\Models\Setting::get(
-                $lang === 'ar' ? 'company_name_ar' : 'company_name_en',
-                $lang === 'ar' ? config('vis.company.name_ar') : config('vis.company.name_en')
-            ),
-            'address' => \App\Domain\Models\Setting::get(
-                $lang === 'ar' ? 'company_address_ar' : 'company_address_en',
-                $lang === 'ar' ? config('vis.company.address_ar') : config('vis.company.address_en')
-            ),
-            'notes'   => \App\Domain\Models\Setting::get(
-                $lang === 'ar' ? 'pdf_notes_ar' : 'pdf_notes_en',
-                $lang === 'ar' ? config('vis.company.notes_ar') : config('vis.company.notes_en')
-            ),
+            'name'    => \App\Domain\Models\Setting::get($lang === 'ar' ? 'company_name_ar' : 'company_name_en',
+                         $lang === 'ar' ? config('vis.company.name_ar') : config('vis.company.name_en')),
+            'address' => \App\Domain\Models\Setting::get($lang === 'ar' ? 'company_address_ar' : 'company_address_en',
+                         $lang === 'ar' ? config('vis.company.address_ar') : config('vis.company.address_en')),
+            'notes'   => \App\Domain\Models\Setting::get($lang === 'ar' ? 'pdf_notes_ar' : 'pdf_notes_en',
+                         $lang === 'ar' ? config('vis.company.notes_ar') : config('vis.company.notes_en')),
             'phone'   => \App\Domain\Models\Setting::get('company_phone', config('vis.company.phone')),
             'email'   => \App\Domain\Models\Setting::get('company_email', config('vis.company.email')),
             'website' => \App\Domain\Models\Setting::get('company_website', config('vis.company.website')),
@@ -89,20 +111,12 @@ class ReportService
 
         // Render the blade view to HTML
         $html = view('reports.inspection-pdf', [
-            'inspection'     => $inspection,
+            'inspection' => $inspection,
             'sectionResults' => $sectionResults,
-            'company'        => $company,
-            'logoBase64'     => $logoBase64,
-            'shareUrl'       => $shareUrl,
-            'lang'           => $lang,
-            'isRtl'          => $lang === 'ar',
-            'dir'            => $lang === 'ar' ? 'rtl' : 'ltr',
-            'align'          => $lang === 'ar' ? 'right' : 'left',
-            'alignOpp'       => $lang === 'ar' ? 'left' : 'right',
-            'isScored'       => $inspection->template->isScored(),
-            'vehicleStr'     => $inspection->vehicle
-                ? trim($inspection->vehicle->year . ' ' . $inspection->vehicle->make . ' ' . $inspection->vehicle->model)
-                : '—',
+            'company' => $company,
+            'logoBase64' => $logoBase64,
+            'shareUrl' => $shareUrl,
+            'lang' => $lang,
         ])->render();
 
         // Increase regex limits for large HTML (mPDF uses preg heavily)

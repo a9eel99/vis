@@ -39,6 +39,19 @@ class AuthController extends Controller
         }
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            // تحقق من أن المستخدم نشط
+            if (!Auth::user()->is_active) {
+                Auth::logout();
+                $request->session()->invalidate();
+
+                $isAr = app()->getLocale() === 'ar';
+                return back()->withErrors([
+                    'email' => $isAr
+                        ? 'هذا الحساب معطل. تواصل مع المسؤول.'
+                        : 'This account has been deactivated. Contact your administrator.',
+                ])->onlyInput('email');
+            }
+
             RateLimiter::clear($key);
             $request->session()->regenerate();
             return redirect()->intended(route('dashboard'));
