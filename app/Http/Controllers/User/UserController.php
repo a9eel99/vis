@@ -78,10 +78,12 @@ class UserController extends Controller
 
             return redirect()->route('users.index')
                 ->with('success', app()->getLocale() === 'ar' ? 'تم حذف المستخدم بنجاح.' : 'User deleted successfully.');
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            return back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
             report($e);
             return back()->with('error',
-                app()->getLocale() === 'ar' ? 'لا يمكن حذف مستخدم لديه فحوصات.' : 'Cannot delete user with inspections.');
+                app()->getLocale() === 'ar' ? 'حدث خطأ أثناء حذف المستخدم.' : 'Error deleting user.');
         }
     }
 

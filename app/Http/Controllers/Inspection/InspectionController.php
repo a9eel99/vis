@@ -110,6 +110,9 @@ class InspectionController extends Controller
 
                 Cache::forget('dashboard_stats');
                 Cache::forget('dashboard_monthly');
+                Cache::forget('dashboard_recent');
+                Cache::forget('dashboard_today_count');
+                Cache::forget('dashboard_today_completed');
 
                 return redirect()->route('inspections.conduct', $inspection)
                     ->with('success', app()->getLocale() === 'ar'
@@ -146,17 +149,8 @@ class InspectionController extends Controller
     public function submit(SubmitInspectionRequest $request, string $id)
     {
         try {
-            $inspection = $this->inspectionService->find($id);
-
-            if (in_array($inspection->status->value, ['completed', 'cancelled'])) {
-                return redirect()->route('inspections.show', $id)
-                    ->with('error', app()->getLocale() === 'ar'
-                        ? 'لا يمكن تعديل فحص مكتمل أو ملغي.'
-                        : 'Cannot re-submit a completed or cancelled inspection.');
-            }
-
             $answers = $request->input('answers', []);
-            $files   = [];
+            $files = [];
 
             $mediaFiles = $request->file('media');
             if ($mediaFiles && is_array($mediaFiles)) {
@@ -169,9 +163,6 @@ class InspectionController extends Controller
 
             Cache::forget('dashboard_stats');
             Cache::forget('dashboard_monthly');
-            Cache::forget('dashboard_recent');
-            Cache::forget('dashboard_today_count');
-            Cache::forget('dashboard_today_completed');
 
             return redirect()->route('inspections.show', $id)
                 ->with('success', app()->getLocale() === 'ar'
@@ -189,9 +180,6 @@ class InspectionController extends Controller
         try {
             $this->inspectionService->cancel($id);
             Cache::forget('dashboard_stats');
-            Cache::forget('dashboard_recent');
-            Cache::forget('dashboard_today_count');
-            Cache::forget('dashboard_today_completed');
 
             return redirect()->route('inspections.index')
                 ->with('success', app()->getLocale() === 'ar' ? 'تم إلغاء الفحص.' : 'Inspection cancelled.');
@@ -208,9 +196,6 @@ class InspectionController extends Controller
             $this->inspectionService->delete($id);
             Cache::forget('dashboard_stats');
             Cache::forget('dashboard_monthly');
-            Cache::forget('dashboard_recent');
-            Cache::forget('dashboard_today_count');
-            Cache::forget('dashboard_today_completed');
 
             return redirect()->route('inspections.index')
                 ->with('success', app()->getLocale() === 'ar' ? 'تم حذف الفحص بنجاح.' : 'Inspection deleted.');
