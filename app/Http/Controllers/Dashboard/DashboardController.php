@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Application\Services\InspectionService;
+use App\Domain\Enums\InspectionStatus;
 use App\Domain\Models\Inspection;
 use App\Domain\Models\Vehicle;
-use App\Domain\Enums\InspectionStatus;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
 
@@ -21,7 +21,6 @@ class DashboardController extends Controller
             $stats = Cache::remember('dashboard_stats', 300, function () {
                 $base = $this->inspectionService->getDashboardStats();
 
-                // إضافة المفاتيح الناقصة التي يحتاجها الـ View
                 $base['total_vehicles']      = Vehicle::count();
                 $base['pending_inspections'] = Inspection::whereIn('status', [
                     InspectionStatus::DRAFT->value,
@@ -30,7 +29,7 @@ class DashboardController extends Controller
                 $base['critical_count']      = Inspection::where('status', InspectionStatus::COMPLETED->value)
                     ->where('has_critical_failure', true)
                     ->count();
-                $base['avg_score']           = $base['average_score'] ?? 0;
+                $base['avg_score'] = $base['average_score'] ?? 0;
 
                 return $base;
             });
@@ -46,7 +45,35 @@ class DashboardController extends Controller
                     ->get();
             });
 
-            return view('dashboard.index', compact('stats', 'monthlyStats', 'recentInspections'));
+            $todayCount = Cache::remember('dashboard_today_count', 60, function () {
+                return Inspection::whereDate('created_at', today())->count();
+            });
+
+            $todayCompleted = Cache::remember('dashboard_today_completed', 60, function () {
+                return Inspection::whereDate('completed_at', today())
+                    ->where('status', InspectionStatus::COMPLETED->value)
+                    ->count();
+            });
+
+            $inspectors = Cache::remember('dashboard_inspectors', 300, function () {
+                return \App\Domain\Models\User::role('Inspector')
+                    ->withCount([
+                        'inspections',
+                        'inspections as completed_count' => fn($q) => $q->where('status', InspectionStatus::COMPLETED->value),
+                    ])
+                    ->orderByDesc('inspections_count')
+                    ->take(5)
+                    ->get();
+            });
+
+            return view('dashboard.index', compact(
+                'stats',
+                'monthlyStats',
+                'recentInspections',
+                'todayCount',
+                'todayCompleted',
+                'inspectors'
+            ));
 
         } catch (\Throwable $e) {
             report($e);
@@ -54,6 +81,9 @@ class DashboardController extends Controller
                 'stats'             => $this->emptyStats(),
                 'monthlyStats'      => collect(),
                 'recentInspections' => collect(),
+                'todayCount'        => 0,
+                'todayCompleted'    => 0,
+                'inspectors'        => collect(),
             ]);
         }
     }
@@ -61,18 +91,18 @@ class DashboardController extends Controller
     private function emptyStats(): array
     {
         return [
-            'total_inspections'    => 0,
-            'completed_inspections'=> 0,
-            'this_month'           => 0,
-            'passed'               => 0,
-            'failed'               => 0,
-            'average_score'        => 0,
-            'grade_distribution'   => [],
-            'pass_rate'            => 0,
-            'total_vehicles'       => 0,
-            'pending_inspections'  => 0,
-            'critical_count'       => 0,
-            'avg_score'            => 0,
+            'total_inspections'     => 0,
+            'completed_inspections' => 0,
+            'this_month'            => 0,
+            'passed'                => 0,
+            'failed'                => 0,
+            'average_score'         => 0,
+            'grade_distribution'    => [],
+            'pass_rate'             => 0,
+            'total_vehicles'        => 0,
+            'pending_inspections'   => 0,
+            'critical_count'        => 0,
+            'avg_score'             => 0,
         ];
     }
 }

@@ -46,7 +46,7 @@ class AuditLog extends Model
         ?array $oldValues = null,
         ?array $newValues = null
     ): self {
-        // Resolve morph map alias (e.g. App\Domain\Models\Inspection → 'inspection')
+        // Resolve morph map alias
         if ($modelType) {
             $alias = array_search($modelType, Relation::morphMap());
             if ($alias !== false) {
@@ -54,15 +54,31 @@ class AuditLog extends Model
             }
         }
 
+        // آمن في Console و unauthenticated contexts
+        $userId    = null;
+        $ipAddress = null;
+        $userAgent = null;
+
+        try {
+            $userId = auth()->id();
+        } catch (\Throwable) {}
+
+        try {
+            if (app()->runningInConsole() === false && request()) {
+                $ipAddress = request()->ip();
+                $userAgent = request()->userAgent();
+            }
+        } catch (\Throwable) {}
+
         return self::create([
-            'user_id' => auth()->id(),
-            'action' => $action,
+            'user_id'    => $userId,
+            'action'     => $action,
             'model_type' => $modelType,
-            'model_id' => $modelId,
+            'model_id'   => $modelId,
             'old_values' => $oldValues,
             'new_values' => $newValues,
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
+            'ip_address' => $ipAddress,
+            'user_agent' => $userAgent,
         ]);
     }
 }

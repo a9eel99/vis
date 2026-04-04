@@ -100,9 +100,13 @@ class MediaService
 
     private function determineType(UploadedFile $file): ?string
     {
+        // تحقق من الـ MIME الحقيقي بدل الاعتماد على اسم الملف
+        $realMime  = $file->getMimeType() ?? '';
         $extension = strtolower($file->getClientOriginalExtension());
 
-        if (in_array($extension, $this->allowedImageTypes)) {
+        $imageMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+
+        if (in_array($realMime, $imageMimes) && in_array($extension, $this->allowedImageTypes)) {
             return 'image';
         }
 
@@ -111,9 +115,17 @@ class MediaService
 
     private function validateFile(UploadedFile $file, string $type): bool
     {
+        // تحقق من الحجم
         $sizeInKb = $file->getSize() / 1024;
+        if ($sizeInKb > $this->maxImageSize) {
+            return false;
+        }
 
-        return $sizeInKb <= $this->maxImageSize;
+        // تحقق إضافي من الـ MIME الحقيقي
+        $realMime     = $file->getMimeType() ?? '';
+        $imageMimes   = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+
+        return in_array($realMime, $imageMimes);
     }
 
     public function getValidationRules(): array

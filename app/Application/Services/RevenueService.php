@@ -33,63 +33,74 @@ class RevenueService
      */
     public function getDailyReport(string $month = null): array
     {
-        $date = $month ? Carbon::parse($month . '-01') : Carbon::now();
+        $date  = $month ? Carbon::parse($month . '-01') : Carbon::now();
         $start = $date->copy()->startOfMonth();
-        $end = $date->copy()->endOfMonth();
+        $end   = $date->copy()->endOfMonth();
+
+        $driver    = DB::getDriverName();
+        $dateExpr  = match ($driver) {
+            'sqlite' => DB::raw("strftime('%Y-%m-%d', paid_at) as date"),
+            'pgsql'  => DB::raw("to_char(paid_at, 'YYYY-MM-DD') as date"),
+            default  => DB::raw('DATE(paid_at) as date'),
+        };
 
         $daily = Inspection::where('status', 'completed')
             ->where('payment_status', 'paid')
             ->whereBetween('paid_at', [$start, $end])
             ->select(
-                DB::raw('DATE(paid_at) as date'),
+                $dateExpr,
                 DB::raw('COUNT(*) as count'),
                 DB::raw('SUM(price - discount) as revenue'),
                 DB::raw('SUM(discount) as total_discount')
             )
-            ->groupBy(DB::raw('DATE(paid_at)'))
+            ->groupBy('date')
             ->orderBy('date')
             ->get();
 
-        $totalRevenue = $daily->sum('revenue');
-        $totalCount = $daily->sum('count');
+        $totalRevenue  = $daily->sum('revenue');
+        $totalCount    = $daily->sum('count');
         $totalDiscount = $daily->sum('total_discount');
 
         return [
-            'month' => $date->format('Y-m'),
-            'month_label' => $date->translatedFormat('F Y'),
-            'days' => $daily,
+            'month'         => $date->format('Y-m'),
+            'month_label'   => $date->translatedFormat('F Y'),
+            'days'          => $daily,
             'total_revenue' => $totalRevenue,
-            'total_count' => $totalCount,
-            'total_discount' => $totalDiscount,
-            'avg_per_day' => $daily->count() > 0 ? round($totalRevenue / $daily->count(), 2) : 0,
+            'total_count'   => $totalCount,
+            'total_discount'=> $totalDiscount,
+            'avg_per_day'   => $daily->count() > 0 ? round($totalRevenue / $daily->count(), 2) : 0,
             'avg_per_inspection' => $totalCount > 0 ? round($totalRevenue / $totalCount, 2) : 0,
         ];
     }
 
-    /**
-     * Get monthly revenue report (12 months)
-     */
     public function getMonthlyReport(int $months = 12): array
     {
-        $start = Carbon::now()->subMonths($months - 1)->startOfMonth();
+        $start  = Carbon::now()->subMonths($months - 1)->startOfMonth();
+        $driver = DB::getDriverName();
+
+        $monthExpr = match ($driver) {
+            'sqlite' => DB::raw("strftime('%Y-%m', paid_at) as month"),
+            'pgsql'  => DB::raw("to_char(paid_at, 'YYYY-MM') as month"),
+            default  => DB::raw("DATE_FORMAT(paid_at, '%Y-%m') as month"),
+        };
 
         $monthly = Inspection::where('status', 'completed')
             ->where('payment_status', 'paid')
             ->where('paid_at', '>=', $start)
             ->select(
-                DB::raw("DATE_FORMAT(paid_at, '%Y-%m') as month"),
+                $monthExpr,
                 DB::raw('COUNT(*) as count'),
                 DB::raw('SUM(price - discount) as revenue'),
                 DB::raw('SUM(discount) as total_discount')
             )
-            ->groupBy(DB::raw("DATE_FORMAT(paid_at, '%Y-%m')"))
+            ->groupBy('month')
             ->orderBy('month')
             ->get();
 
         return [
-            'months' => $monthly,
+            'months'        => $monthly,
             'total_revenue' => $monthly->sum('revenue'),
-            'total_count' => $monthly->sum('count'),
+            'total_count'   => $monthly->sum('count'),
         ];
     }
 

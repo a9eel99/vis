@@ -15,9 +15,17 @@ class ScoringService
 
     public function __construct()
     {
-        $this->excellentThreshold = (float) \App\Domain\Models\Setting::get('score_excellent', config('vis.scoring.excellent', 90));
-        $this->goodThreshold = (float) \App\Domain\Models\Setting::get('score_good', config('vis.scoring.good', 75));
-        $this->needsAttentionThreshold = (float) \App\Domain\Models\Setting::get('score_needs_attention', config('vis.scoring.needs_attention', 50));
+        $thresholds = \Illuminate\Support\Facades\Cache::remember('vis.scoring.thresholds', 3600, function () {
+            return [
+                'excellent'       => (float) \App\Domain\Models\Setting::get('score_excellent',       config('vis.scoring.excellent',       90)),
+                'good'            => (float) \App\Domain\Models\Setting::get('score_good',            config('vis.scoring.good',            75)),
+                'needs_attention' => (float) \App\Domain\Models\Setting::get('score_needs_attention', config('vis.scoring.needs_attention', 50)),
+            ];
+        });
+
+        $this->excellentThreshold       = $thresholds['excellent'];
+        $this->goodThreshold            = $thresholds['good'];
+        $this->needsAttentionThreshold  = $thresholds['needs_attention'];
     }
 
     public function calculate(Inspection $inspection): ScoringResultDTO

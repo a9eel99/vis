@@ -196,17 +196,26 @@ class TemplateController extends Controller
 
     public function updateQuestion(Request $request, string $questionId)
     {
+        $request->validate([
+            'label'    => 'required|string|max:255',
+            'type'     => 'required|in:text,number,checkbox,dropdown,photo',
+            'weight'   => 'nullable|numeric|min:0|max:100',
+            'max_score'=> 'nullable|numeric|min:0|max:100',
+            'is_critical' => 'nullable|boolean',
+            'is_required' => 'nullable|boolean',
+        ]);
+
         try {
             $question = \App\Domain\Models\InspectionQuestion::findOrFail($questionId);
-            $data = $request->all();
+            $data     = $request->only(['label', 'type', 'weight', 'max_score', 'is_critical', 'is_required', 'description']);
 
             if ($request->filled('options_json')) {
-                $data['options'] = json_decode($request->input('options_json'), true);
+                $decoded = json_decode($request->input('options_json'), true);
+                $data['options'] = is_array($decoded) ? $decoded : null;
             } elseif (($data['type'] ?? '') !== 'dropdown') {
                 $data['options'] = null;
             }
 
-            unset($data['options_json'], $data['_token'], $data['_method']);
             $this->templateService->updateQuestion($questionId, $data);
 
             return redirect()->route('templates.edit', $question->section->template_id)

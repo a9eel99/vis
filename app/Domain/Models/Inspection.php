@@ -175,9 +175,20 @@ class Inspection extends Model
     public static function generateReferenceNumber(): string
     {
         $prefix = 'INS';
-        $date = now()->format('Ymd');
-        $random = strtoupper(substr(uniqid(), -4));
-        return "{$prefix}-{$date}-{$random}";
+        $date   = now()->format('Ymd');
+
+        // حاول حتى 10 مرات للحصول على رقم فريد
+        for ($i = 0; $i < 10; $i++) {
+            $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
+            $ref    = "{$prefix}-{$date}-{$random}";
+
+            if (!static::withTrashed()->where('reference_number', $ref)->exists()) {
+                return $ref;
+            }
+        }
+
+        // Fallback: timestamp كامل + random
+        return "{$prefix}-{$date}-" . strtoupper(substr(md5(microtime(true) . mt_rand()), 0, 8));
     }
 
     /* ── Scopes ── */
