@@ -81,6 +81,12 @@ class VehicleService
 
     public function delete(string $id): bool
     {
+        $vehicle = $this->vehicleRepository->findOrFail($id);
+
+        if ($vehicle->image) {
+            Storage::disk('public')->delete($vehicle->image);
+        }
+
         AuditLog::log('vehicle_deleted', Vehicle::class, $id);
         return $this->vehicleRepository->delete($id);
     }

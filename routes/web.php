@@ -18,7 +18,7 @@ Route::get('lang/{locale}', function (string $locale) {
 })->name('lang.switch');
 
 // Car Data API (public — for form dropdowns)
-Route::prefix('api/car-data')->group(function () {
+Route::prefix('api/car-data')->middleware('throttle:60,1')->group(function () {
     Route::get('makes', [\App\Http\Controllers\Api\CarDataController::class, 'makes']);
     Route::get('makes/{id}/models', [\App\Http\Controllers\Api\CarDataController::class, 'models']);
     Route::get('colors', [\App\Http\Controllers\Api\CarDataController::class, 'colors']);
@@ -95,11 +95,7 @@ Route::middleware('auth')->group(function () {
     Route::get('audit-logs', [\App\Http\Controllers\AuditLog\AuditLogController::class, 'index'])->name('audit-logs.index');
 
     // Finance / Revenue
-    Route::middleware('can:view finance')->group(function () {
-        Route::get('finance', [\App\Http\Controllers\Finance\RevenueController::class, 'index'])->name('finance.index');
-    });
-    Route::middleware('can:manage finance')->group(function () {
-        Route::post('finance/{id}/paid',   [\App\Http\Controllers\Finance\RevenueController::class, 'markPaid'])->name('finance.markPaid');
-        Route::post('finance/{id}/unpaid', [\App\Http\Controllers\Finance\RevenueController::class, 'markUnpaid'])->name('finance.markUnpaid');
-    });
+    Route::get('finance', [\App\Http\Controllers\Finance\RevenueController::class, 'index'])->name('finance.index');
+    Route::post('finance/{id}/paid', [\App\Http\Controllers\Finance\RevenueController::class, 'markPaid'])->name('finance.markPaid');
+    Route::post('finance/{id}/unpaid', [\App\Http\Controllers\Finance\RevenueController::class, 'markUnpaid'])->name('finance.markUnpaid');
 });

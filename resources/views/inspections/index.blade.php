@@ -8,9 +8,7 @@
     <h1>{{ __('inspections') }}</h1>
     <div class="header-actions">
         @can("create inspections")
-        @can('create inspections')
         <a href="{{ route('inspections.create') }}" class="btn btn-primary">+ {{ __('new_inspection') }}</a>
-        @endcan
         @endcan
     </div>
 </div>

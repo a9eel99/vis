@@ -74,47 +74,32 @@ class InspectionController extends Controller
                 $data = $request->validated();
 
                 if ($request->input('vehicle_mode') === 'new') {
-                    $ownerName  = $request->input('owner_name');
+                    $customer = null;
+                    $ownerName = $request->input('owner_name');
                     $ownerPhone = $request->input('owner_phone');
-                    $customerId = $request->input('customer_id');
 
-                    // إذا اختار عميل موجود استخدمه — وإلا ابحث أو أنشئ
-                    if ($customerId) {
-                        $customer = Customer::find($customerId);
-                    } elseif ($ownerName || $ownerPhone) {
-                        // ابحث عن عميل موجود بنفس الهاتف أولاً
-                        $customer = Customer::when(
-                            $ownerPhone,
-                            fn($q) => $q->where('phone', $ownerPhone),
-                            fn($q) => $q->where('name', $ownerName ?? '')
-                        )->first();
-
-                        if (!$customer) {
-                            $customer = Customer::create([
-                                'name'       => $ownerName ?? '',
-                                'phone'      => $ownerPhone,
-                                'email'      => $request->input('owner_email'),
-                                'created_by' => auth()->id(),
-                            ]);
-                        }
-                    } else {
-                        $customer = null;
+                    if ($ownerName || $ownerPhone) {
+                        $customer = Customer::create([
+                            'name' => $ownerName ?? '',
+                            'phone' => $ownerPhone,
+                            'email' => $request->input('owner_email'),
+                            'created_by' => auth()->id(),
+                        ]);
                     }
 
                     $vehicle = Vehicle::create([
-                        'make'          => $request->input('make'),
-                        'model'         => $request->input('model'),
-                        'year'          => $request->input('year'),
-                        'color'         => $request->input('color'),
-                        'vin'           => $request->input('vin'),
+                        'make' => $request->input('make'),
+                        'model' => $request->input('model'),
+                        'year' => $request->input('year'),
+                        'color' => $request->input('color'),
+                        'vin' => $request->input('vin'),
                         'license_plate' => $request->input('license_plate'),
-                        'mileage'       => $request->input('mileage'),
-                        'fuel_type'     => $request->input('fuel_type'),
-                        'customer_id'   => $customer?->id,
-                        'owner_name'    => $customer?->name  ?? $ownerName,
-                        'owner_phone'   => $customer?->phone ?? $ownerPhone,
-                        'owner_email'   => $customer?->email ?? $request->input('owner_email'),
-                        'created_by'    => auth()->id(),
+                        'mileage' => $request->input('mileage'),
+                        'fuel_type' => $request->input('fuel_type'),
+                        'customer_id' => $customer?->id,
+                        'owner_name' => $ownerName,
+                        'owner_phone' => $ownerPhone,
+                        'owner_email' => $request->input('owner_email'),
                     ]);
 
                     $data['vehicle_id'] = $vehicle->id;
@@ -147,6 +132,15 @@ class InspectionController extends Controller
     public function conduct(string $id)
     {
         $inspection = $this->inspectionService->find($id);
+
+        $this->authorize('conduct', $inspection);
+
+        if (in_array($inspection->status->value, ['completed', 'cancelled'])) {
+            return redirect()->route('inspections.show', $id)
+                ->with('error', app()->getLocale() === 'ar'
+                    ? 'لا يمكن تعديل فحص مكتمل أو ملغي.'
+                    : 'Cannot re-conduct a completed or cancelled inspection.');
+        }
 
         if ($inspection->status->value === 'draft') {
             $this->inspectionService->startInspection($id);

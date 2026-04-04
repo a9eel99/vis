@@ -19,10 +19,44 @@ class TraditionalInspectionSeeder extends Seeder
             'created_by' => \App\Domain\Models\User::first()?->id,
         ]);
 
-        $chassisOpts = ['جيد','ضربة على الراس','ضربة على الراسية','قصعات بالراس','قصعات بالراسية','أثر ضرب','مشدود','معدول','مقصوص','ملحوم','صدأ','غير أصلي'];
-        $conditionOpts = ['ممتاز','جيد','مقبول','ضعيف','سيء','معطل','غير موجود'];
-        $bodyOpts = ['أصلي','مشغول','غيار لون','ضربة','كحتات','صدأ','معجون','دهان'];
-        $yesNoOpts = ['يعمل','لا يعمل','غير موجود'];
+        $chassisOpts = [
+            ['label' => 'جيد',            'score' => 10],
+            ['label' => 'ضربة على الراس',  'score' => 4],
+            ['label' => 'ضربة على الراسية','score' => 4],
+            ['label' => 'قصعات بالراس',   'score' => 6],
+            ['label' => 'قصعات بالراسية', 'score' => 6],
+            ['label' => 'أثر ضرب',        'score' => 5],
+            ['label' => 'مشدود',          'score' => 5],
+            ['label' => 'معدول',          'score' => 3],
+            ['label' => 'مقصوص',          'score' => 1],
+            ['label' => 'ملحوم',          'score' => 1],
+            ['label' => 'صدأ',            'score' => 2],
+            ['label' => 'غير أصلي',       'score' => 0],
+        ];
+        $conditionOpts = [
+            ['label' => 'ممتاز',     'score' => 10],
+            ['label' => 'جيد',       'score' => 8],
+            ['label' => 'مقبول',     'score' => 6],
+            ['label' => 'ضعيف',      'score' => 4],
+            ['label' => 'سيء',       'score' => 2],
+            ['label' => 'معطل',      'score' => 0],
+            ['label' => 'غير موجود', 'score' => 0],
+        ];
+        $bodyOpts = [
+            ['label' => 'أصلي',     'score' => 10],
+            ['label' => 'مشغول',    'score' => 7],
+            ['label' => 'غيار لون', 'score' => 6],
+            ['label' => 'ضربة',     'score' => 4],
+            ['label' => 'كحتات',    'score' => 7],
+            ['label' => 'صدأ',      'score' => 3],
+            ['label' => 'معجون',    'score' => 5],
+            ['label' => 'دهان',     'score' => 6],
+        ];
+        $yesNoOpts = [
+            ['label' => 'يعمل',      'score' => 10],
+            ['label' => 'لا يعمل',   'score' => 0],
+            ['label' => 'غير موجود', 'score' => 0],
+        ];
 
         // ===== Section 1: فحص الشاسي =====
         $s1 = InspectionSection::create([
@@ -216,7 +250,13 @@ class TraditionalInspectionSeeder extends Seeder
             'sort_order' => 4,
         ]);
 
-        $tireOpts = ['ممتاز','جيد','متوسط','ضعيف','بحاجة تبديل'];
+        $tireOpts = [
+            ['label' => 'ممتاز',         'score' => 10],
+            ['label' => 'جيد',           'score' => 8],
+            ['label' => 'متوسط',         'score' => 6],
+            ['label' => 'ضعيف',          'score' => 3],
+            ['label' => 'بحاجة تبديل',   'score' => 0],
+        ];
         $tireQuestions = [
             'الإطار الأمامي اليمين', 'الإطار الأمامي الشمال',
             'الإطار الخلفي اليمين', 'الإطار الخلفي الشمال',
@@ -293,7 +333,12 @@ class TraditionalInspectionSeeder extends Seeder
             'section_id' => $s7->id,
             'label' => 'التوصية النهائية',
             'type' => 'dropdown',
-            'options' => ['يُنصح بالشراء','يُنصح بالشراء مع ملاحظات','لا يُنصح بالشراء','بحاجة فحص إضافي'],
+            'options' => [
+                ['label' => 'يُنصح بالشراء',              'score' => 10],
+                ['label' => 'يُنصح بالشراء مع ملاحظات',   'score' => 7],
+                ['label' => 'لا يُنصح بالشراء',            'score' => 0],
+                ['label' => 'بحاجة فحص إضافي',             'score' => 5],
+            ],
             'weight' => 0,
             'max_score' => 0,
             'is_critical' => false,

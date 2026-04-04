@@ -75,6 +75,11 @@ class InspectionTemplate extends Model
 
     public function getTotalQuestionsAttribute(): int
     {
+        if ($this->relationLoaded('sections')) {
+            return $this->sections->sum(fn($s) =>
+                $s->relationLoaded('questions') ? $s->questions->count() : $s->questions()->count()
+            );
+        }
         return $this->questions()->count();
     }
 
