@@ -19,10 +19,10 @@ class TraditionalInspectionSeeder extends Seeder
             'created_by' => \App\Domain\Models\User::first()?->id,
         ]);
 
-        $chassisOpts = json_encode(['جيد','ضربة على الراس','ضربة على الراسية','قصعات بالراس','قصعات بالراسية','أثر ضرب','مشدود','معدول','مقصوص','ملحوم','صدأ','غير أصلي'], JSON_UNESCAPED_UNICODE);
-        $conditionOpts = json_encode(['ممتاز','جيد','مقبول','ضعيف','سيء','معطل','غير موجود'], JSON_UNESCAPED_UNICODE);
-        $bodyOpts = json_encode(['أصلي','مشغول','غيار لون','ضربة','كحتات','صدأ','معجون','دهان'], JSON_UNESCAPED_UNICODE);
-        $yesNoOpts = json_encode(['يعمل','لا يعمل','غير موجود'], JSON_UNESCAPED_UNICODE);
+        $chassisOpts = ['جيد','ضربة على الراس','ضربة على الراسية','قصعات بالراس','قصعات بالراسية','أثر ضرب','مشدود','معدول','مقصوص','ملحوم','صدأ','غير أصلي'];
+        $conditionOpts = ['ممتاز','جيد','مقبول','ضعيف','سيء','معطل','غير موجود'];
+        $bodyOpts = ['أصلي','مشغول','غيار لون','ضربة','كحتات','صدأ','معجون','دهان'];
+        $yesNoOpts = ['يعمل','لا يعمل','غير موجود'];
 
         // ===== Section 1: فحص الشاسي =====
         $s1 = InspectionSection::create([
@@ -216,7 +216,7 @@ class TraditionalInspectionSeeder extends Seeder
             'sort_order' => 4,
         ]);
 
-        $tireOpts = json_encode(['ممتاز','جيد','متوسط','ضعيف','بحاجة تبديل'], JSON_UNESCAPED_UNICODE);
+        $tireOpts = ['ممتاز','جيد','متوسط','ضعيف','بحاجة تبديل'];
         $tireQuestions = [
             'الإطار الأمامي اليمين', 'الإطار الأمامي الشمال',
             'الإطار الخلفي اليمين', 'الإطار الخلفي الشمال',
@@ -293,7 +293,7 @@ class TraditionalInspectionSeeder extends Seeder
             'section_id' => $s7->id,
             'label' => 'التوصية النهائية',
             'type' => 'dropdown',
-            'options' => json_encode(['يُنصح بالشراء','يُنصح بالشراء مع ملاحظات','لا يُنصح بالشراء','بحاجة فحص إضافي'], JSON_UNESCAPED_UNICODE),
+            'options' => ['يُنصح بالشراء','يُنصح بالشراء مع ملاحظات','لا يُنصح بالشراء','بحاجة فحص إضافي'],
             'weight' => 0,
             'max_score' => 0,
             'is_critical' => false,

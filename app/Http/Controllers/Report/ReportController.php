@@ -62,6 +62,8 @@ class ReportController extends Controller
                          $lang === 'ar' ? config('vis.company.name_ar') : config('vis.company.name_en')),
             'address' => \App\Domain\Models\Setting::get($lang === 'ar' ? 'company_address_ar' : 'company_address_en',
                          $lang === 'ar' ? config('vis.company.address_ar') : config('vis.company.address_en')),
+            'notes'   => \App\Domain\Models\Setting::get($lang === 'ar' ? 'pdf_notes_ar' : 'pdf_notes_en',
+                         $lang === 'ar' ? config('vis.company.notes_ar') : config('vis.company.notes_en')),
             'phone'   => \App\Domain\Models\Setting::get('company_phone', config('vis.company.phone')),
             'email'   => \App\Domain\Models\Setting::get('company_email', config('vis.company.email')),
             'website' => \App\Domain\Models\Setting::get('company_website', config('vis.company.website')),

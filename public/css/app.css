@@ -1299,6 +1299,111 @@ nav[role="navigation"] svg { width: 16px; height: 16px; }
 .opt-row .opt-s{width:80px;font-size:.85rem}
 .opts-area{margin-top:.75rem;padding:.75rem;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-sm)}
 
+/* ============================================
+   FINANCE KPI CARDS
+   ============================================ */
+.fin-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.fin-kpi {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform .2s, box-shadow .2s;
+}
+.fin-kpi:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+.fin-kpi-bar { height: 5px; width: 100%; }
+.fin-kpi.green  .fin-kpi-bar { background: linear-gradient(90deg, #10b981, #34d399); }
+.fin-kpi.blue   .fin-kpi-bar { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.fin-kpi.purple .fin-kpi-bar { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.fin-kpi.amber  .fin-kpi-bar { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.fin-kpi-body {
+    padding: 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+.fin-kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+.fin-kpi.green  .fin-kpi-icon { background: #d1fae5; }
+.fin-kpi.blue   .fin-kpi-icon { background: #dbeafe; }
+.fin-kpi.purple .fin-kpi-icon { background: #ede9fe; }
+.fin-kpi.amber  .fin-kpi-icon { background: #fef3c7; }
+.fin-kpi-content { flex: 1; min-width: 0; }
+.fin-kpi-label {
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: .35rem;
+}
+.fin-kpi-value {
+    font-size: 1.65rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: .3rem;
+    color: var(--gray-800);
+}
+.fin-kpi.green  .fin-kpi-value { color: #059669; }
+.fin-kpi.blue   .fin-kpi-value { color: #2563eb; }
+.fin-kpi.purple .fin-kpi-value { color: #7c3aed; }
+.fin-kpi.amber  .fin-kpi-value { color: #d97706; }
+.fin-kpi-currency {
+    font-size: .82rem;
+    font-weight: 600;
+    opacity: .65;
+    margin-inline-start: 2px;
+}
+.fin-kpi-sub {
+    font-size: .75rem;
+    color: var(--gray-400);
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+}
+.fin-kpi-sub .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+.fin-kpi.green  .fin-kpi-sub .dot { background: #10b981; }
+.fin-kpi.blue   .fin-kpi-sub .dot { background: #3b82f6; }
+.fin-kpi.purple .fin-kpi-sub .dot { background: #8b5cf6; }
+.fin-kpi.amber  .fin-kpi-sub .dot { background: #f59e0b; }
+
+/* Dark mode */
+.dark .fin-kpi { background: #1e293b; border-color: #334155; }
+.dark .fin-kpi.green  .fin-kpi-value { color: #34d399; }
+.dark .fin-kpi.blue   .fin-kpi-value { color: #60a5fa; }
+.dark .fin-kpi.purple .fin-kpi-value { color: #a78bfa; }
+.dark .fin-kpi.amber  .fin-kpi-value { color: #fbbf24; }
+.dark .fin-kpi.green  .fin-kpi-icon { background: rgba(16,185,129,.15); }
+.dark .fin-kpi.blue   .fin-kpi-icon { background: rgba(59,130,246,.15); }
+.dark .fin-kpi.purple .fin-kpi-icon { background: rgba(139,92,246,.15); }
+.dark .fin-kpi.amber  .fin-kpi-icon { background: rgba(245,158,11,.15); }
+
+@media (max-width: 1100px) { .fin-kpis { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .fin-kpis { grid-template-columns: 1fr; } }
+
 /* ========================================
    Dashboard
    ======================================== */

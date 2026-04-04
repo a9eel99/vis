@@ -64,9 +64,17 @@ class InspectionRepository extends BaseRepository implements InspectionRepositor
 
     public function getMonthlyStats(int $months = 12): Collection
     {
+        $driver = DB::getDriverName();
+
+        $monthExpr = match ($driver) {
+            'sqlite' => DB::raw("strftime('%Y-%m', created_at) as month"),
+            'pgsql'  => DB::raw("to_char(created_at, 'YYYY-MM') as month"),
+            default  => DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
+        };
+
         return $this->model
             ->select(
-                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
+                $monthExpr,
                 DB::raw('COUNT(*) as total'),
                 DB::raw("SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed"),
                 DB::raw("AVG(CASE WHEN percentage IS NOT NULL THEN percentage ELSE NULL END) as avg_score")

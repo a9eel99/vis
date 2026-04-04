@@ -47,12 +47,18 @@ class ReportService
 
         // Company info - read from DB settings first, fallback to config
         $company = [
-            'name'    => \App\Domain\Models\Setting::get($lang === 'ar' ? 'company_name_ar' : 'company_name_en',
-                         $lang === 'ar' ? config('vis.company.name_ar') : config('vis.company.name_en')),
-            'address' => \App\Domain\Models\Setting::get($lang === 'ar' ? 'company_address_ar' : 'company_address_en',
-                         $lang === 'ar' ? config('vis.company.address_ar') : config('vis.company.address_en')),
-            'notes'   => \App\Domain\Models\Setting::get($lang === 'ar' ? 'pdf_notes_ar' : 'pdf_notes_en',
-                         $lang === 'ar' ? config('vis.company.notes_ar') : config('vis.company.notes_en')),
+            'name'    => \App\Domain\Models\Setting::get(
+                $lang === 'ar' ? 'company_name_ar' : 'company_name_en',
+                $lang === 'ar' ? config('vis.company.name_ar') : config('vis.company.name_en')
+            ),
+            'address' => \App\Domain\Models\Setting::get(
+                $lang === 'ar' ? 'company_address_ar' : 'company_address_en',
+                $lang === 'ar' ? config('vis.company.address_ar') : config('vis.company.address_en')
+            ),
+            'notes'   => \App\Domain\Models\Setting::get(
+                $lang === 'ar' ? 'pdf_notes_ar' : 'pdf_notes_en',
+                $lang === 'ar' ? config('vis.company.notes_ar') : config('vis.company.notes_en')
+            ),
             'phone'   => \App\Domain\Models\Setting::get('company_phone', config('vis.company.phone')),
             'email'   => \App\Domain\Models\Setting::get('company_email', config('vis.company.email')),
             'website' => \App\Domain\Models\Setting::get('company_website', config('vis.company.website')),
@@ -83,12 +89,20 @@ class ReportService
 
         // Render the blade view to HTML
         $html = view('reports.inspection-pdf', [
-            'inspection' => $inspection,
+            'inspection'     => $inspection,
             'sectionResults' => $sectionResults,
-            'company' => $company,
-            'logoBase64' => $logoBase64,
-            'shareUrl' => $shareUrl,
-            'lang' => $lang,
+            'company'        => $company,
+            'logoBase64'     => $logoBase64,
+            'shareUrl'       => $shareUrl,
+            'lang'           => $lang,
+            'isRtl'          => $lang === 'ar',
+            'dir'            => $lang === 'ar' ? 'rtl' : 'ltr',
+            'align'          => $lang === 'ar' ? 'right' : 'left',
+            'alignOpp'       => $lang === 'ar' ? 'left' : 'right',
+            'isScored'       => $inspection->template->isScored(),
+            'vehicleStr'     => $inspection->vehicle
+                ? trim($inspection->vehicle->year . ' ' . $inspection->vehicle->make . ' ' . $inspection->vehicle->model)
+                : '—',
         ])->render();
 
         // Increase regex limits for large HTML (mPDF uses preg heavily)

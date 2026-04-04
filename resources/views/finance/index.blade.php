@@ -6,40 +6,7 @@
     <h1>💰 {{ $lang === 'ar' ? 'التقارير المالية' : 'Financial Reports' }}</h1>
 </div>
 
-{{-- KPI Cards --}}
-<div class="stats-grid" style="margin-bottom:1.5rem">
-    <div class="stat-card">
-        <div class="stat-icon" style="background:#dcfce7;color:#16a34a">💵</div>
-        <div>
-            <div class="stat-value" style="font-size:1.4rem;font-weight:800;color:var(--gray-900)">{{ number_format($summary['today'], 2) }}</div>
-            <div class="stat-label" style="font-size:.75rem;color:var(--gray-500)">{{ $lang === 'ar' ? 'إيرادات اليوم' : "Today's Revenue" }}</div>
-            <div style="font-size:.7rem;color:var(--gray-400)">{{ $summary['today_count'] }} {{ $lang === 'ar' ? 'فحص' : 'inspections' }}</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon" style="background:#dbeafe;color:#2563eb">📊</div>
-        <div>
-            <div class="stat-value" style="font-size:1.4rem;font-weight:800;color:var(--gray-900)">{{ number_format($summary['this_month'], 2) }}</div>
-            <div class="stat-label" style="font-size:.75rem;color:var(--gray-500)">{{ $lang === 'ar' ? 'إيرادات الشهر' : 'This Month' }}</div>
-            <div style="font-size:.7rem;color:var(--gray-400)">{{ $summary['this_month_count'] }} {{ $lang === 'ar' ? 'فحص' : 'inspections' }}</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon" style="background:#f3e8ff;color:#7c3aed">📈</div>
-        <div>
-            <div class="stat-value" style="font-size:1.4rem;font-weight:800;color:var(--gray-900)">{{ number_format($summary['last_month'], 2) }}</div>
-            <div class="stat-label" style="font-size:.75rem;color:var(--gray-500)">{{ $lang === 'ar' ? 'الشهر الماضي' : 'Last Month' }}</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon" style="background:#fef3c7;color:#d97706">⏳</div>
-        <div>
-            <div class="stat-value" style="font-size:1.4rem;font-weight:800;color:#d97706">{{ number_format($summary['total_unpaid'], 2) }}</div>
-            <div class="stat-label" style="font-size:.75rem;color:var(--gray-500)">{{ $lang === 'ar' ? 'غير مدفوع' : 'Unpaid' }}</div>
-            <div style="font-size:.7rem;color:var(--gray-400)">{{ $unpaid->count() }} {{ $lang === 'ar' ? 'فحص' : 'inspections' }}</div>
-        </div>
-    </div>
-</div>
+@include('partials.finance-kpis')
 
 {{-- Monthly Chart --}}
 <div class="card mb-2">
@@ -74,11 +41,15 @@
                     <td class="font-mono" style="font-size:.82rem">{{ $day->date }}</td>
                     <td><strong>{{ $day->count }}</strong></td>
                     <td style="color:var(--success);font-weight:600">{{ number_format($day->revenue + $day->total_discount, 2) }}</td>
-                    <td style="color:var(--danger)">{{ $day->total_discount > 0 ? '-' . number_format($day->total_discount, 2) : '-' }}</td>
+                    <td style="color:var(--danger)">{{ $day->total_discount > 0 ? '-' . number_format($day->total_discount, 2) : '—' }}</td>
                     <td style="font-weight:700">{{ number_format($day->revenue, 2) }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-center text-muted" style="padding:2rem">{{ $lang === 'ar' ? 'لا توجد بيانات لهذا الشهر' : 'No data for this month' }}</td></tr>
+                <tr>
+                    <td colspan="5" class="text-center text-muted" style="padding:2rem">
+                        {{ $lang === 'ar' ? 'لا توجد بيانات لهذا الشهر' : 'No data for this month' }}
+                    </td>
+                </tr>
                 @endforelse
             </tbody>
             @if($dailyReport['days']->count())
@@ -87,12 +58,16 @@
                     <td>{{ $lang === 'ar' ? 'المجموع' : 'Total' }}</td>
                     <td>{{ $dailyReport['total_count'] }}</td>
                     <td style="color:var(--success)">{{ number_format($dailyReport['total_revenue'] + $dailyReport['total_discount'], 2) }}</td>
-                    <td style="color:var(--danger)">{{ $dailyReport['total_discount'] > 0 ? '-' . number_format($dailyReport['total_discount'], 2) : '-' }}</td>
+                    <td style="color:var(--danger)">{{ $dailyReport['total_discount'] > 0 ? '-' . number_format($dailyReport['total_discount'], 2) : '—' }}</td>
                     <td>{{ number_format($dailyReport['total_revenue'], 2) }}</td>
                 </tr>
                 <tr style="font-size:.8rem;color:var(--gray-500)">
-                    <td colspan="2">{{ $lang === 'ar' ? 'المتوسط اليومي' : 'Daily Avg' }}: {{ number_format($dailyReport['avg_per_day'], 2) }}</td>
-                    <td colspan="3">{{ $lang === 'ar' ? 'متوسط الفحص' : 'Per Inspection' }}: {{ number_format($dailyReport['avg_per_inspection'], 2) }}</td>
+                    <td colspan="2">
+                        {{ $lang === 'ar' ? 'المتوسط اليومي' : 'Daily Avg' }}: {{ number_format($dailyReport['avg_per_day'], 2) }}
+                    </td>
+                    <td colspan="3">
+                        {{ $lang === 'ar' ? 'متوسط الفحص' : 'Per Inspection' }}: {{ number_format($dailyReport['avg_per_inspection'], 2) }}
+                    </td>
                 </tr>
             </tfoot>
             @endif
@@ -104,7 +79,10 @@
 @if($unpaid->count())
 <div class="card mb-2">
     <div class="card-header" style="background:#fef3c7;border-bottom-color:#f59e0b">
-        <h3 style="color:#92400e">⏳ {{ $lang === 'ar' ? 'فحوصات غير مدفوعة' : 'Unpaid Inspections' }} ({{ $unpaid->count() }})</h3>
+        <h3 style="color:#92400e">
+            ⏳ {{ $lang === 'ar' ? 'فحوصات غير مدفوعة' : 'Unpaid Inspections' }}
+            ({{ $unpaid->count() }})
+        </h3>
     </div>
     <div class="card-body" style="overflow-x:auto">
         <table class="data-table" style="width:100%">
@@ -122,12 +100,17 @@
                 @foreach($unpaid as $ins)
                 <tr>
                     <td class="font-mono" style="font-size:.82rem">{{ $ins->reference_number }}</td>
-                    <td>{{ $ins->vehicle->full_name ?? '-' }}</td>
-                    <td>{{ $ins->template->name ?? '-' }}</td>
+                    <td>{{ $ins->vehicle->full_name ?? '—' }}</td>
+                    <td>{{ $ins->template->name ?? '—' }}</td>
                     <td style="font-weight:700">{{ number_format($ins->price, 2) }}</td>
-                    <td style="font-size:.82rem;color:var(--gray-500)">{{ $ins->completed_at?->format('Y-m-d') ?? $ins->created_at->format('Y-m-d') }}</td>
+                    <td style="font-size:.82rem;color:var(--gray-500)">
+                        {{ $ins->completed_at?->format('Y-m-d') ?? $ins->created_at->format('Y-m-d') }}
+                    </td>
                     <td>
-                        <button type="button" class="btn btn-success btn-sm" onclick="openPayModal('{{ $ins->id }}', '{{ $ins->reference_number }}', {{ $ins->price }})">💵 {{ $lang === 'ar' ? 'قبض' : 'Paid' }}</button>
+                        <button type="button" class="btn btn-success btn-sm"
+                            onclick="openPayModal('{{ $ins->id }}', '{{ $ins->reference_number }}', {{ $ins->price }})">
+                            💵 {{ $lang === 'ar' ? 'قبض' : 'Mark Paid' }}
+                        </button>
                     </td>
                 </tr>
                 @endforeach
@@ -137,11 +120,13 @@
 </div>
 @endif
 
-{{-- Paid Inspections Detail --}}
+{{-- Payment History --}}
 <div class="card mb-2">
     <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <h3>💰 {{ $lang === 'ar' ? 'سجل الدفعات' : 'Payment History' }} — {{ $dailyReport['month_label'] }}</h3>
-        <span class="badge badge-success" style="font-size:.75rem">{{ $payments->total() }} {{ $lang === 'ar' ? 'دفعة' : 'payments' }}</span>
+        <span class="badge badge-success" style="font-size:.75rem">
+            {{ $payments->total() }} {{ $lang === 'ar' ? 'دفعة' : 'payments' }}
+        </span>
     </div>
     <div class="card-body" style="overflow-x:auto">
         <table class="data-table" style="width:100%">
@@ -155,7 +140,7 @@
                     <th>{{ $lang === 'ar' ? 'الخصم' : 'Discount' }}</th>
                     <th>{{ $lang === 'ar' ? 'الصافي' : 'Net' }}</th>
                     <th>{{ $lang === 'ar' ? 'تاريخ الدفع' : 'Paid Date' }}</th>
-                    <th>{{ $lang === 'ar' ? 'الملاحظة' : 'Note' }}</th>
+                    <th>{{ $lang === 'ar' ? 'ملاحظة' : 'Note' }}</th>
                     <th></th>
                 </tr>
             </thead>
@@ -164,23 +149,40 @@
                 <tr>
                     <td style="color:var(--gray-400);font-size:.8rem">{{ $payments->firstItem() + $idx }}</td>
                     <td>
-                        <a href="{{ route('inspections.show', $pay->id) }}" class="font-mono" style="font-size:.8rem;color:var(--primary);text-decoration:none">{{ $pay->reference_number }}</a>
+                        <a href="{{ route('inspections.show', $pay->id) }}"
+                           class="font-mono"
+                           style="font-size:.8rem;color:var(--primary);text-decoration:none">
+                            {{ $pay->reference_number }}
+                        </a>
                     </td>
-                    <td style="font-size:.85rem">{{ $pay->vehicle->full_name ?? '-' }}</td>
-                    <td style="font-size:.82rem;color:var(--gray-500)">{{ $pay->template->name ?? '-' }}</td>
+                    <td style="font-size:.85rem">{{ $pay->vehicle->full_name ?? '—' }}</td>
+                    <td style="font-size:.82rem;color:var(--gray-500)">{{ $pay->template->name ?? '—' }}</td>
                     <td style="font-weight:600">{{ number_format($pay->price, 2) }}</td>
                     <td>
                         @if($pay->discount > 0)
-                            <span style="color:var(--danger);font-size:.85rem">-{{ number_format($pay->discount, 2) }}</span>
+                            <span style="color:var(--danger);font-size:.85rem">
+                                -{{ number_format($pay->discount, 2) }}
+                            </span>
                         @else
                             <span style="color:var(--gray-400)">—</span>
                         @endif
                     </td>
-                    <td style="font-weight:700;color:var(--success)">{{ number_format($pay->price - $pay->discount, 2) }}</td>
-                    <td style="font-size:.8rem;color:var(--gray-500)">{{ $pay->paid_at?->format('Y-m-d H:i') }}</td>
-                    <td style="font-size:.8rem;color:var(--gray-500);max-width:150px">
+                    <td style="font-weight:700;color:var(--success)">
+                        {{ number_format($pay->price - $pay->discount, 2) }}
+                    </td>
+                    <td style="font-size:.8rem;color:var(--gray-500)">
+                        {{ $pay->paid_at?->format('Y-m-d H:i') }}
+                    </td>
+                    <td style="font-size:.8rem;max-width:150px">
                         @if($pay->payment_note)
-                            <button type="button" class="btn btn-ghost btn-sm" style="font-size:.78rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;text-align:start" onclick="viewNote(this)" data-ref="{{ $pay->reference_number }}" data-note="{{ e($pay->payment_note) }}" data-date="{{ $pay->paid_at?->format('Y-m-d H:i') }}" data-amount="{{ number_format($pay->price - $pay->discount, 2) }}">
+                            <button type="button"
+                                class="btn btn-ghost btn-sm"
+                                style="font-size:.78rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;text-align:start"
+                                onclick="viewNote(this)"
+                                data-ref="{{ $pay->reference_number }}"
+                                data-note="{{ e($pay->payment_note) }}"
+                                data-date="{{ $pay->paid_at?->format('Y-m-d H:i') }}"
+                                data-amount="{{ number_format($pay->price - $pay->discount, 2) }}">
                                 📝 {{ Str::limit($pay->payment_note, 20) }}
                             </button>
                         @else
@@ -188,17 +190,29 @@
                         @endif
                     </td>
                     <td>
-                        <form method="POST" action="{{ route('finance.markUnpaid', $pay->id) }}" onsubmit="return confirm('{{ $lang === 'ar' ? 'إلغاء الدفع؟' : 'Reverse payment?' }}')">
+                        <form method="POST"
+                              action="{{ route('finance.markUnpaid', $pay->id) }}"
+                              onsubmit="return confirm('{{ $lang === 'ar' ? 'إلغاء الدفع؟' : 'Reverse payment?' }}')">
                             @csrf
-                            <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);font-size:.75rem" title="{{ $lang === 'ar' ? 'إلغاء الدفع' : 'Reverse' }}">↩</button>
+                            <button type="submit"
+                                class="btn btn-ghost btn-sm"
+                                style="color:var(--danger);font-size:.75rem"
+                                title="{{ $lang === 'ar' ? 'إلغاء الدفع' : 'Reverse' }}">
+                                ↩
+                            </button>
                         </form>
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="10" class="text-center text-muted" style="padding:2rem">{{ $lang === 'ar' ? 'لا توجد دفعات لهذا الشهر' : 'No payments this month' }}</td></tr>
+                <tr>
+                    <td colspan="10" class="text-center text-muted" style="padding:2rem">
+                        {{ $lang === 'ar' ? 'لا توجد دفعات لهذا الشهر' : 'No payments this month' }}
+                    </td>
+                </tr>
                 @endforelse
             </tbody>
         </table>
+
         @if($payments->hasPages())
         <div style="margin-top:1rem;display:flex;justify-content:center">
             {{ $payments->appends(['month' => $month])->links() }}
@@ -221,32 +235,45 @@ new Chart(document.getElementById('monthly-chart'), {
     type: 'bar',
     data: {
         labels: monthlyData.map(function(m) { return m.month; }),
-        datasets: [{
-            label: '{{ $lang === "ar" ? "الإيرادات" : "Revenue" }}',
-            data: monthlyData.map(function(m) { return m.revenue; }),
-            backgroundColor: 'rgba(16,185,129,0.3)',
-            borderColor: '#10b981',
-            borderWidth: 2,
-            borderRadius: 6,
-        }, {
-            label: '{{ $lang === "ar" ? "عدد الفحوصات" : "Count" }}',
-            data: monthlyData.map(function(m) { return m.count; }),
-            type: 'line',
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59,130,246,0.1)',
-            yAxisID: 'y1',
-            tension: 0.3,
-            pointRadius: 4,
-            pointBackgroundColor: '#3b82f6',
-        }]
+        datasets: [
+            {
+                label: '{{ $lang === "ar" ? "الإيرادات" : "Revenue" }}',
+                data: monthlyData.map(function(m) { return m.revenue; }),
+                backgroundColor: 'rgba(16,185,129,0.25)',
+                borderColor: '#10b981',
+                borderWidth: 2,
+                borderRadius: 6,
+            },
+            {
+                label: '{{ $lang === "ar" ? "عدد الفحوصات" : "Count" }}',
+                data: monthlyData.map(function(m) { return m.count; }),
+                type: 'line',
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59,130,246,0.08)',
+                yAxisID: 'y1',
+                tension: 0.3,
+                pointRadius: 4,
+                pointBackgroundColor: '#3b82f6',
+            }
+        ]
     },
     options: {
         responsive: true,
-        plugins: { legend: { labels: { color: textColor, font: { family: 'Cairo' } } } },
+        plugins: {
+            legend: { labels: { color: textColor, font: { family: 'Cairo' } } }
+        },
         scales: {
             x: { ticks: { color: textColor }, grid: { color: gridColor } },
-            y: { position: '{{ $lang === "ar" ? "right" : "left" }}', ticks: { color: textColor }, grid: { color: gridColor } },
-            y1: { position: '{{ $lang === "ar" ? "left" : "right" }}', ticks: { color: textColor }, grid: { display: false } }
+            y: {
+                position: '{{ $lang === "ar" ? "right" : "left" }}',
+                ticks: { color: textColor },
+                grid: { color: gridColor }
+            },
+            y1: {
+                position: '{{ $lang === "ar" ? "left" : "right" }}',
+                ticks: { color: textColor },
+                grid: { display: false }
+            }
         }
     }
 });

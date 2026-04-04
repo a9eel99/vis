@@ -13,6 +13,9 @@ class DatabaseSeeder extends Seeder
             DefaultSettingsSeeder::class,
             AdminUserSeeder::class,
             CarMakesAndColorsSeeder::class,
+            TraditionalTemplateSeeder::class,
+            TraditionalInspectionSeeder::class,
+            DemoDataSeeder::class,
         ]);
     }
 }
