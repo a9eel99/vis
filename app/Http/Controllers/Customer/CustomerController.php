@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Application\Services\CustomerService;
-use App\Domain\Models\Vehicle;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CustomerRequest;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -20,27 +20,15 @@ class CustomerController extends Controller
             perPage: 20
         );
         $lang = app()->getLocale();
-
         return view('customers.index', compact('customers', 'lang'));
     }
 
-    public function store(Request $request)
+    public function store(CustomerRequest $request)
     {
-        $data = $request->validate([
-            'name'      => 'required|string|max:255',
-            'phone'     => 'nullable|string|max:50',
-            'email'     => 'nullable|email|max:255',
-            'id_number' => 'nullable|string|max:50',
-            'address'   => 'nullable|string|max:500',
-            'notes'     => 'nullable|string|max:1000',
-        ]);
-
         try {
-            $this->customerService->create($data);
-
-            $lang = app()->getLocale();
+            $this->customerService->create($request->validated());
             return redirect()->route('customers.index')
-                ->with('success', $lang === 'ar' ? 'تم إضافة العميل بنجاح' : 'Customer created successfully');
+                ->with('success', app()->getLocale() === 'ar' ? 'تم إضافة العميل بنجاح' : 'Customer created successfully');
         } catch (\Throwable $e) {
             report($e);
             return back()->withInput()->with('error',
@@ -50,32 +38,18 @@ class CustomerController extends Controller
 
     public function show(string $id)
     {
-        $customer = $this->customerService->find($id);
-
+        $customer    = $this->customerService->find($id);
         $inspections = $this->customerService->getInspections($id);
-
-        $lang = app()->getLocale();
-
+        $lang        = app()->getLocale();
         return view('customers.show', compact('customer', 'inspections', 'lang'));
     }
 
-    public function update(Request $request, string $id)
+    public function update(CustomerRequest $request, string $id)
     {
-        $data = $request->validate([
-            'name'      => 'required|string|max:255',
-            'phone'     => 'nullable|string|max:50',
-            'email'     => 'nullable|email|max:255',
-            'id_number' => 'nullable|string|max:50',
-            'address'   => 'nullable|string|max:500',
-            'notes'     => 'nullable|string|max:1000',
-        ]);
-
         try {
-            $customer = $this->customerService->update($id, $data);
-
-            $lang = app()->getLocale();
+            $customer = $this->customerService->update($id, $request->validated());
             return redirect()->route('customers.show', $customer)
-                ->with('success', $lang === 'ar' ? 'تم تحديث بيانات العميل' : 'Customer updated');
+                ->with('success', app()->getLocale() === 'ar' ? 'تم تحديث بيانات العميل' : 'Customer updated');
         } catch (\Throwable $e) {
             report($e);
             return back()->withInput()->with('error',
@@ -87,10 +61,8 @@ class CustomerController extends Controller
     {
         try {
             $this->customerService->delete($id);
-
-            $lang = app()->getLocale();
             return redirect()->route('customers.index')
-                ->with('success', $lang === 'ar' ? 'تم حذف العميل' : 'Customer deleted');
+                ->with('success', app()->getLocale() === 'ar' ? 'تم حذف العميل' : 'Customer deleted');
         } catch (\Throwable $e) {
             report($e);
             return back()->with('error',
@@ -101,13 +73,10 @@ class CustomerController extends Controller
     public function linkVehicle(Request $request, string $customerId)
     {
         $request->validate(['vehicle_id' => 'required|exists:vehicles,id']);
-
         try {
             $this->customerService->linkVehicle($customerId, $request->vehicle_id);
-
-            $lang = app()->getLocale();
             return redirect()->route('customers.show', $customerId)
-                ->with('success', $lang === 'ar' ? 'تم ربط المركبة بالعميل' : 'Vehicle linked to customer');
+                ->with('success', app()->getLocale() === 'ar' ? 'تم ربط المركبة بالعميل' : 'Vehicle linked to customer');
         } catch (\Throwable $e) {
             report($e);
             return back()->with('error',
@@ -119,10 +88,8 @@ class CustomerController extends Controller
     {
         try {
             $this->customerService->unlinkVehicle($customerId, $vehicleId);
-
-            $lang = app()->getLocale();
             return redirect()->route('customers.show', $customerId)
-                ->with('success', $lang === 'ar' ? 'تم فك ربط المركبة' : 'Vehicle unlinked');
+                ->with('success', app()->getLocale() === 'ar' ? 'تم فك ربط المركبة' : 'Vehicle unlinked');
         } catch (\Throwable $e) {
             report($e);
             return back()->with('error',

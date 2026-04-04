@@ -165,22 +165,28 @@ class TemplateController extends Controller
 
     public function addQuestion(Request $request, string $sectionId)
     {
-        $request->validate([
-            'label' => 'required|string|max:255',
-            'type' => 'required|in:text,number,checkbox,dropdown,photo',
-            'weight' => 'nullable|numeric|min:0|max:100',
-            'max_score' => 'nullable|numeric|min:0|max:100',
+        $validated = $request->validate([
+            'label'       => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'type'        => 'required|in:text,number,checkbox,dropdown,photo',
+            'weight'      => 'nullable|numeric|min:0|max:100',
+            'max_score'   => 'nullable|numeric|min:0|max:100',
             'is_critical' => 'nullable|boolean',
+            'is_required' => 'nullable|boolean',
+            'options_json'=> 'nullable|string',
         ]);
 
         try {
-            $data = $request->all();
+            $data = $validated;
 
-            if ($request->filled('options_json')) {
-                $data['options'] = json_decode($request->input('options_json'), true);
+            if (!empty($data['options_json'])) {
+                $decoded = json_decode($data['options_json'], true);
+                $data['options'] = is_array($decoded) ? $decoded : null;
             } elseif ($data['type'] !== 'dropdown') {
                 $data['options'] = null;
             }
+
+            unset($data['options_json']);
 
             $section = \App\Domain\Models\InspectionSection::findOrFail($sectionId);
             $this->templateService->addQuestion($sectionId, $data);
@@ -196,26 +202,17 @@ class TemplateController extends Controller
 
     public function updateQuestion(Request $request, string $questionId)
     {
-        $request->validate([
-            'label'    => 'required|string|max:255',
-            'type'     => 'required|in:text,number,checkbox,dropdown,photo',
-            'weight'   => 'nullable|numeric|min:0|max:100',
-            'max_score'=> 'nullable|numeric|min:0|max:100',
-            'is_critical' => 'nullable|boolean',
-            'is_required' => 'nullable|boolean',
-        ]);
-
         try {
             $question = \App\Domain\Models\InspectionQuestion::findOrFail($questionId);
-            $data     = $request->only(['label', 'type', 'weight', 'max_score', 'is_critical', 'is_required', 'description']);
+            $data = $request->all();
 
             if ($request->filled('options_json')) {
-                $decoded = json_decode($request->input('options_json'), true);
-                $data['options'] = is_array($decoded) ? $decoded : null;
+                $data['options'] = json_decode($request->input('options_json'), true);
             } elseif (($data['type'] ?? '') !== 'dropdown') {
                 $data['options'] = null;
             }
 
+            unset($data['options_json'], $data['_token'], $data['_method']);
             $this->templateService->updateQuestion($questionId, $data);
 
             return redirect()->route('templates.edit', $question->section->template_id)
