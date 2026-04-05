@@ -67,6 +67,7 @@
         <div class="ins-hero-actions">
             @if($inspection->status->value === 'completed')
                 {{-- Payment Status --}}
+                @can('manage finance')
                 @if($inspection->payment_status === 'paid')
                     <button type="button" class="hbtn" style="background:#dcfce7;color:#16a34a;cursor:pointer;font-weight:700;border:none" onclick="viewNote(this)" data-ref="{{ $inspection->reference_number }}" data-note="{{ e($inspection->payment_note ?? ($lang === 'ar' ? 'بدون ملاحظة' : 'No note')) }}" data-date="{{ $inspection->paid_at?->format('Y-m-d H:i') }}" data-amount="{{ number_format($inspection->price - $inspection->discount, 2) }}">
                         💰 {{ $lang === 'ar' ? 'مدفوع' : 'Paid' }} — {{ number_format($inspection->price - $inspection->discount, 2) }} {{ $lang === 'ar' ? 'د.أ' : 'JOD' }}
@@ -77,6 +78,7 @@
                         💵 {{ $lang === 'ar' ? 'قبض ' . number_format($inspection->price, 2) . ' د.أ' : 'Collect ' . number_format($inspection->price, 2) . ' JOD' }}
                     </button>
                 @endif
+                @endcan
 
                 <a href="{{ route('reports.pdf', $inspection) }}" class="hbtn hbtn-pdf">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>
@@ -272,17 +274,30 @@
                     @foreach($result->media as $media)
                         <div style="position:relative;display:inline-block">
                         @if($media->isImage())
-                        <a href="{{ $media->url }}" target="_blank"><img src="{{ $media->url }}" alt="{{ $media->original_name }}"></a>
+                            <a href="{{ $media->url }}" target="_blank">
+                                <img src="{{ $media->url }}" alt="{{ $media->original_name }}">
+                            </a>
                         @else
-                        <a href="{{ $media->url }}" target="_blank" class="ins-q-remark" style="padding:4px 10px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:6px;text-decoration:none;color:var(--primary)">📎 {{ \Illuminate\Support\Str::limit($media->original_name, 20) }}</a>
+                            <a href="{{ $media->url }}" target="_blank" class="ins-q-remark" style="padding:4px 10px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:6px;text-decoration:none;color:var(--primary)">
+                                📎 {{ \Illuminate\Support\Str::limit($media->original_name, 20) }}
+                            </a>
                         @endif
+
                         @can('edit inspections')
-                        <form method="POST" action="{{ route('inspections.deleteMedia', $media->id) }}" style="position:absolute;top:-6px;{{ $lang === 'ar' ? 'left' : 'right' }}:-6px;margin:0" onsubmit="return confirm('{{ $lang === 'ar' ? 'حذف هذه الصورة؟' : 'Delete this image?' }}')">
-                            @csrf @method('DELETE')
-                            <button type="submit" style="width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:2px solid #fff;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.3)" title="{{ $lang === 'ar' ? 'حذف' : 'Delete' }}">✕</button>
+                        <form id="del-media-{{ $media->id }}"
+                            method="POST"
+                            action="{{ route('inspections.deleteMedia', $media->id) }}"
+                            style="display:none">
+                            @csrf
+                            <input type="hidden" name="_method" value="DELETE">
                         </form>
+                        <button type="button"
+                                onclick="confirmDelete('del-media-{{ $media->id }}', '{{ $media->original_name }}')"
+                                style="position:absolute;top:-6px;{{ $lang === 'ar' ? 'left' : 'right' }}:-6px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:2px solid #fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.3)">
+                            ✕
+                        </button>
                         @endcan
-                        </div>
+                    </div>
                     @endforeach
                 </div>
                 @endif

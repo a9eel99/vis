@@ -12,7 +12,7 @@
 <div class="card mb-2">
     <div class="card-header"><h3>📈 {{ $lang === 'ar' ? 'الإيرادات الشهرية' : 'Monthly Revenue' }}</h3></div>
     <div class="card-body">
-        <canvas id="monthly-chart" height="200"></canvas>
+        <canvas id="monthly-chart" height="50"></canvas>
     </div>
 </div>
 
@@ -107,10 +107,12 @@
                         {{ $ins->completed_at?->format('Y-m-d') ?? $ins->created_at->format('Y-m-d') }}
                     </td>
                     <td>
+                        @can('manage finance')
                         <button type="button" class="btn btn-success btn-sm"
                             onclick="openPayModal('{{ $ins->id }}', '{{ $ins->reference_number }}', {{ $ins->price }})">
                             💵 {{ $lang === 'ar' ? 'قبض' : 'Mark Paid' }}
                         </button>
+                        @endcan
                     </td>
                 </tr>
                 @endforeach
@@ -190,6 +192,7 @@
                         @endif
                     </td>
                     <td>
+                        @can('manage finance')
                         <form method="POST"
                               action="{{ route('finance.markUnpaid', $pay->id) }}"
                               onsubmit="return confirm('{{ $lang === 'ar' ? 'إلغاء الدفع؟' : 'Reverse payment?' }}')">
@@ -201,6 +204,7 @@
                                 ↩
                             </button>
                         </form>
+                        @endcan
                     </td>
                 </tr>
                 @empty

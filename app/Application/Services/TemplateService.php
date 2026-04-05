@@ -124,7 +124,10 @@ class TemplateService
 
     public function deleteQuestion(string $questionId): bool
     {
-        return InspectionQuestion::findOrFail($questionId)->delete();
+        $question = InspectionQuestion::findOrFail($questionId);
+        \App\Domain\Models\InspectionResult::where('question_id', $questionId)->delete();
+        \App\Domain\Models\InspectionMedia::where('question_id', $questionId)->delete();
+        return $question->delete();
     }
 
     public function duplicate(string $id): InspectionTemplate
@@ -200,6 +203,9 @@ class TemplateService
             $existingIds[] = $question->id;
         }
 
+        $toDelete = $section->questions()->whereNotIn('id', $existingIds)->pluck('id');
+        \App\Domain\Models\InspectionResult::whereIn('question_id', $toDelete)->delete();
+        \App\Domain\Models\InspectionMedia::whereIn('question_id', $toDelete)->delete();
         $section->questions()->whereNotIn('id', $existingIds)->delete();
     }
 }

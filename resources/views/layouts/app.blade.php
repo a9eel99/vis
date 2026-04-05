@@ -111,11 +111,13 @@
                 <span>{{ __('reports') }}</span>
             </a>
             @endcan
-
+            
+            @can('view finance')
             <a href="{{ route('finance.index') }}" class="nav-item {{ request()->routeIs('finance.*') ? 'active' : '' }}" data-tip="{{ $lang === 'ar' ? 'المالية' : 'Finance' }}">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
                 <span>{{ $lang === 'ar' ? 'المالية' : 'Finance' }}</span>
             </a>
+            @endcan
 
             @canany(['manage templates', 'manage users'])
             <div class="nav-section-label">{{ __('settings') }}</div>
