@@ -50,16 +50,32 @@ class PuppeteerReportService
             escapeshellarg($this->templatePath)
         );
 
-        // 5. Execute
-        $output   = [];
-        $exitCode = 0;
-        exec($command, $output, $exitCode);
+        // 5. Execute using proc_open (exec/shell_exec disabled on server)
+        $outputStr = '';
+        $exitCode  = -1;
+        if (function_exists('proc_open')) {
+            $descriptors = [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+            $process = proc_open($command, $descriptors, $pipes);
+            if (is_resource($process)) {
+                fclose($pipes[0]);
+                $outputStr = stream_get_contents($pipes[1]);
+                $outputStr .= stream_get_contents($pipes[2]);
+                fclose($pipes[1]);
+                fclose($pipes[2]);
+                $exitCode = proc_close($process);
+            }
+        } elseif (function_exists('exec')) {
+            $output = [];
+            exec($command, $output, $exitCode);
+            $outputStr = implode("\n", $output);
+        } else {
+            throw new \RuntimeException('No available method to execute Node.js (exec and proc_open are both disabled).');
+        }
 
         // 6. Cleanup temp JSON
         @unlink($jsonPath);
 
         // 7. Handle errors
-        $outputStr = implode("\n", $output);
 
         if ($exitCode !== 0) {
             Log::error('Puppeteer PDF generation failed', [
@@ -190,16 +206,6 @@ class PuppeteerReportService
                         if ($sectionStatus === 'ok') $sectionStatus = 'warn';
                         $notes[] = $result->remarks;
                         $allNotes[] = ['type' => 'warn', 'text' => $result->remarks];
-                    } elseif (
-                        $result->answer
-                        && !in_array(is_object($question->type) ? $question->type->value : $question->type, ['photo', 'video', 'checkbox'])
-                        && trim($result->answer) !== ''
-                        && trim($result->answer) !== '0'
-                    ) {
-                        $itemStatus = 'warn';
-                        if ($sectionStatus === 'ok') $sectionStatus = 'warn';
-                        $notes[] = $result->answer;
-                        $allNotes[] = ['type' => 'warn', 'text' => $question->label . ': ' . $result->answer];
                     }
 
                     // Convert media to base64 (images only, max 4 per question)
