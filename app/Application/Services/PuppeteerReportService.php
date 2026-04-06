@@ -41,8 +41,12 @@ class PuppeteerReportService
         $pdfPath = $pdfDir . '/' . $inspection->reference_number . '.pdf';
 
         // 4. Build the Node.js command
+        $browserlessToken = config('vis.puppeteer.browserless_token', env('BROWSERLESS_TOKEN', ''));
+        $envPrefix = $browserlessToken ? 'BROWSERLESS_TOKEN=' . escapeshellarg($browserlessToken) . ' ' : '';
+
         $command = sprintf(
-            '%s %s --data=%s --output=%s --template=%s 2>&1',
+            '%s%s %s --data=%s --output=%s --template=%s 2>&1',
+            $envPrefix,
             escapeshellcmd($this->nodePath),
             escapeshellarg($this->scriptPath),
             escapeshellarg($jsonPath),
