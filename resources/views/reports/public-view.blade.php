@@ -1,154 +1,372 @@
 @php
     $isRtl = $lang === 'ar';
     $dir = $isRtl ? 'rtl' : 'ltr';
-    $isScored = $inspection->template->isScored();
     $gradeStr = is_object($inspection->grade) ? $inspection->grade->value : ($inspection->grade ?? '');
     $gradeLabel = $inspection->grade_label ?? ucfirst(str_replace('_', ' ', $gradeStr));
-    $gradeMap = ['excellent'=>['#059669','#ecfdf5'],'good'=>['#2563eb','#eff6ff'],'needs_attention'=>['#d97706','#fffbeb'],'critical'=>['#dc2626','#fef2f2']];
-    $gradeColors = $gradeMap[$gradeStr] ?? ['#6b7280','#f9fafb'];
-    $allPhotos = collect();
-    foreach ($sectionResults as $data) {
-        foreach ($data['results'] as $item) {
-            if ($item['result'] && $item['result']->media) {
-                foreach ($item['result']->media as $m) {
-                    if ($m->isImage()) {
-                        $allPhotos->push(['url' => $m->url, 'name' => $m->original_name, 'question' => $item['question']->label, 'section' => $data['section']->name]);
-                    }
-                }
-            }
-        }
-    }
+    $pct = (float)($inspection->percentage ?? 0);
+    $gradeLetter = match(true) {
+        $pct >= 90 => 'A',
+        $pct >= 75 => 'B',
+        $pct >= 60 => 'C',
+        $pct >= 45 => 'D',
+        default    => 'F',
+    };
+    $gradeMap = ['excellent'=>'#10b981','good'=>'#3b82f6','needs_attention'=>'#f59e0b','critical'=>'#ef4444'];
+    $gradeBg  = $gradeMap[$gradeStr] ?? '#6b7280';
+    $isPass   = !$inspection->has_critical_failure;
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $lang }}" dir="{{ $dir }}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $isRtl ? 'تقرير الفحص' : 'Inspection Report' }} - {{ $inspection->reference_number }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root{--b9:#1e3a8a;--b7:#1d4ed8;--b6:#2563eb;--b1:#dbeafe;--b0:#eff6ff;--g6:#059669;--g0:#ecfdf5;--a6:#d97706;--a0:#fffbeb;--r6:#dc2626;--r0:#fef2f2;--g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g800:#1e293b;--g900:#0f172a;--rad:12px;--sh:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);--shL:0 4px 12px rgba(0,0,0,.08)}
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Cairo','IBM Plex Sans',sans-serif;background:var(--g100);color:var(--g800);direction:{{$dir}};line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
-        .topbar{background:var(--b9);padding:14px 0}.topbar-in{max-width:680px;margin:0 auto;padding:0 16px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;align-items:center;gap:10px;color:#fff}.brand img{height:36px;border-radius:6px}.brand-n{font-weight:700;font-size:1rem}.ref-tag{background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:600;letter-spacing:.3px}
-        .ctn{max-width:680px;margin:0 auto;padding:0 16px 32px}
-        .hero{background:#fff;border-radius:0 0 var(--rad) var(--rad);padding:24px;text-align:center;box-shadow:var(--shL);margin-bottom:16px;position:relative;overflow:hidden}.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--b6),var(--b9))}.vname{font-size:1.3rem;font-weight:800;color:var(--g900);margin-bottom:2px}.vsub{font-size:.82rem;color:var(--g500);margin-bottom:16px}.dateline{font-size:.75rem;color:var(--g400);margin-top:12px}
-        .gr{width:110px;height:110px;margin:0 auto 8px;position:relative}.gr svg{width:100%;height:100%;transform:rotate(-90deg)}.gr .bg{fill:none;stroke:var(--g200);stroke-width:8}.gr .fg{fill:none;stroke:{{$gradeColors[0]}};stroke-width:8;stroke-linecap:round;stroke-dasharray:314;stroke-dashoffset:{{314-(314*($inspection->percentage??0)/100)}};transition:stroke-dashoffset 1.5s ease}.gr .in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.gr .pct{font-size:1.6rem;font-weight:800;color:{{$gradeColors[0]}};line-height:1}.gr .ps{font-size:.8rem;font-weight:600}.gl{display:inline-block;padding:4px 16px;border-radius:20px;background:{{$gradeColors[1]}};color:{{$gradeColors[0]}};font-weight:700;font-size:.85rem}
-        .dbadge{display:inline-block;padding:8px 20px;border-radius:20px;background:var(--b0);color:var(--b7);font-weight:700;font-size:.9rem;margin-top:8px}
-        .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}.st{background:#fff;border-radius:var(--rad);padding:14px 10px;text-align:center;box-shadow:var(--sh)}.st-l{font-size:.68rem;color:var(--g400);font-weight:600;text-transform:uppercase;letter-spacing:.5px}.st-v{font-size:1.1rem;font-weight:800;color:var(--g800);margin-top:2px}
-        .alert-c{background:var(--r0);border:2px solid #fca5a5;border-radius:var(--rad);padding:12px 16px;color:#991b1b;font-weight:700;font-size:.85rem;text-align:center;margin-bottom:16px}
-        .card{background:#fff;border-radius:var(--rad);box-shadow:var(--sh);margin-bottom:12px;overflow:hidden}.ch{padding:14px 18px;font-weight:700;font-size:.88rem;color:var(--g700);border-bottom:1px solid var(--g100);display:flex;align-items:center;gap:8px}.cb{padding:14px 18px}
-        .ir{display:flex;padding:7px 0;border-bottom:1px solid var(--g50)}.ir:last-child{border-bottom:none}.il{width:110px;flex-shrink:0;font-size:.76rem;color:var(--g400);font-weight:600}.iv{flex:1;font-size:.88rem;font-weight:500}
-        .sh{background:var(--b9);color:#fff;padding:12px 18px;font-weight:700;font-size:.88rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;-webkit-tap-highlight-color:transparent}.sh:active{background:#1e3578}.sa{transition:transform .3s;font-size:.8rem}.sb{display:block}
-        .qr{padding:12px 18px;border-bottom:1px solid var(--g100)}.qr:last-child{border-bottom:none}.qt{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.ql{font-weight:600;font-size:.85rem;color:var(--g800);flex:1}.cd{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--r6);margin-{{$isRtl?'left':'right'}}:4px;vertical-align:middle}.qa{margin-top:3px;font-size:.82rem;color:var(--g500)}.qp{display:inline-block;padding:2px 10px;border-radius:10px;font-size:.72rem;font-weight:700}.ph{background:#d1fae5;color:#065f46}.pm{background:#fef3c7;color:#92400e}.pl{background:#fee2e2;color:#991b1b}.qrm{font-size:.76rem;color:var(--g400);font-style:italic;margin-top:2px}.qcf{display:inline-block;padding:1px 8px;border-radius:4px;background:var(--r0);color:var(--r6);font-size:.72rem;font-weight:700;margin-top:3px}
-        .qph{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.qph img{width:64px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--g200);cursor:pointer;transition:transform .2s}.qph img:hover{transform:scale(1.05)}
-        .gg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 18px}.gt{position:relative;padding-top:75%;border-radius:8px;overflow:hidden;cursor:pointer;background:var(--g100)}.gt img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .3s}.gt:hover img{transform:scale(1.05)}.gt .cap{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff;font-size:.65rem;padding:16px 8px 6px;font-weight:600}
-        .lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;align-items:center;justify-content:center;flex-direction:column}.lb.on{display:flex}.lbc{position:absolute;top:16px;{{$isRtl?'left':'right'}}:16px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;border:none;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center}.lbi{max-width:92vw;max-height:80vh;border-radius:8px;object-fit:contain}.lbt{color:rgba(255,255,255,.8);font-size:.82rem;margin-top:10px;text-align:center;max-width:90vw}.lbn{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;border:none;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center}.lbn:hover{background:rgba(255,255,255,.25)}.lbp { {{ $isRtl ? 'right' : 'left' }}: 12px; }
-.lbx { {{ $isRtl ? 'left' : 'right' }}: 12px; }.lbk{color:rgba(255,255,255,.5);font-size:.72rem;margin-top:6px}
-        .dl{display:block;padding:14px;background:var(--b9);color:#fff;text-align:center;border-radius:var(--rad);text-decoration:none;font-weight:700;font-size:.95rem;margin-top:16px;box-shadow:var(--sh);transition:opacity .2s}.dl:hover{opacity:.9}
-        .ft{text-align:center;padding:20px 0;font-size:.72rem;color:var(--g400);line-height:1.8}
-        @media(max-width:500px){.stats{grid-template-columns:repeat(2,1fr)}.stats .st:last-child{grid-column:span 2}.gg{grid-template-columns:repeat(2,1fr)}.il{width:85px}}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ $isRtl ? 'تقرير الفحص' : 'Inspection Report' }} — {{ $inspection->reference_number }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange:  #f59e0b;
+  --orange-d:#d97706;
+  --green:   #10b981;
+  --red:     #ef4444;
+  --blue:    #3b82f6;
+  --dark:    #0f172a;
+  --dark2:   #1e293b;
+  --gray:    #64748b;
+  --light:   #f8fafc;
+  --border:  #e2e8f0;
+  --white:   #ffffff;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Cairo','Segoe UI',Tahoma,Arial,sans-serif;background:#f1f5f9;color:var(--dark);direction:{{$dir}};line-height:1.6;min-height:100vh}
+.wrap{max-width:820px;margin:0 auto;padding:16px}
+
+/* ── TOP BAR ── */
+.top-bar{background:var(--dark);color:white;padding:10px 20px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:18px;font-weight:900;letter-spacing:-0.5px}
+.brand em{color:var(--orange);font-style:normal}
+.top-meta{font-size:10px;color:#94a3b8}
+.top-meta strong{color:white}
+
+/* ── COVER CARD ── */
+.cover-card{background:linear-gradient(145deg,var(--dark) 0%,var(--dark2) 60%,#0c1526 100%);border-radius:0 0 16px 16px;padding:24px 20px 20px;color:white;margin-bottom:14px;position:relative;overflow:hidden}
+.cover-card::before{content:'';position:absolute;top:-40px;left:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(245,158,11,.15) 0%,transparent 70%);pointer-events:none}
+.cover-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.company-name{font-size:16px;font-weight:800}
+.premium-tag{background:linear-gradient(135deg,var(--orange),var(--orange-d));color:white;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:800}
+
+.car-row{display:flex;gap:16px;align-items:flex-start;margin-bottom:16px}
+.car-img-box{width:160px;height:105px;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;font-size:44px;opacity:.6}
+.car-img-box img{width:100%;height:100%;object-fit:cover;opacity:1;border-radius:10px}
+.car-info h1{font-size:22px;font-weight:900;line-height:1.1;margin-bottom:3px}
+.car-sub{color:rgba(255,255,255,.5);font-size:11px;margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:4px 10px;font-size:9px;display:flex;flex-direction:column;align-items:center;min-width:64px}
+.chip-lbl{color:rgba(255,255,255,.4);font-size:7px;margin-bottom:1px}
+.chip-val{font-weight:700;font-size:10px}
+
+/* ── SCORE PANEL ── */
+.score-panel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.grade-circle{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;flex-shrink:0}
+.g-A{background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 0 18px rgba(16,185,129,.4)}
+.g-B{background:linear-gradient(135deg,#2563eb,#3b82f6);box-shadow:0 0 18px rgba(59,130,246,.4)}
+.g-C{background:linear-gradient(135deg,var(--orange-d),var(--orange));box-shadow:0 0 18px rgba(245,158,11,.4)}
+.g-D{background:linear-gradient(135deg,#ea580c,#f97316);box-shadow:0 0 18px rgba(249,115,22,.4)}
+.g-F{background:linear-gradient(135deg,#dc2626,var(--red));box-shadow:0 0 18px rgba(239,68,68,.4)}
+.score-info{flex:1;min-width:120px}
+.score-lbl{font-size:8px;color:rgba(255,255,255,.4);margin-bottom:2px}
+.score-num{font-size:32px;font-weight:900;color:var(--orange);line-height:1;margin-bottom:4px}
+.score-bar-bg{height:5px;background:rgba(255,255,255,.1);border-radius:10px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--orange),var(--green))}
+.result-badge{padding:6px 14px;border-radius:20px;font-weight:800;font-size:13px;display:inline-block;margin-bottom:6px}
+.pass{background:rgba(16,185,129,.2);color:#6ee7b7;border:1px solid rgba(16,185,129,.25)}
+.fail{background:rgba(239,68,68,.2);color:#fca5a5;border:1px solid rgba(239,68,68,.25)}
+.mkt-lbl{font-size:8px;color:rgba(255,255,255,.4)}
+.mkt-val{font-size:14px;font-weight:900;color:var(--orange)}
+
+/* ── SECTIONS OVERVIEW ── */
+.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
+.ov-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:8px}
+.ov-icon{font-size:16px}
+.ov-name{font-size:11px;font-weight:700;flex:1}
+.ov-st{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.ok{background:rgba(16,185,129,.12);color:var(--green)}
+.warn{background:rgba(245,158,11,.12);color:var(--orange)}
+.bad{background:rgba(239,68,68,.1);color:var(--red)}
+
+/* ── SECTION CARD ── */
+.section-wrap{background:var(--white);border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:12px}
+.sec-header{background:var(--dark2);color:white;padding:13px 18px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.sec-icon{width:38px;height:38px;background:rgba(245,158,11,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.sec-title-txt{font-size:15px;font-weight:800;flex:1}
+.sec-sub-txt{font-size:9px;color:#94a3b8;margin-top:1px}
+.sec-badge-wrap{padding:3px 10px;border-radius:20px;font-size:9px;font-weight:700}
+.sb-ok{background:rgba(16,185,129,.2);color:#6ee7b7;border:1px solid rgba(16,185,129,.25)}
+.sb-warn{background:rgba(245,158,11,.2);color:#fde68a;border:1px solid rgba(245,158,11,.25)}
+.sb-bad{background:rgba(239,68,68,.2);color:#fca5a5;border:1px solid rgba(239,68,68,.25)}
+.sec-arrow{color:rgba(255,255,255,.5);font-size:12px;transition:transform .3s}
+
+.sec-body{padding:12px 16px}
+.checks-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.check-card{border:1px solid var(--border);border-radius:9px;padding:9px 11px;background:var(--white)}
+.check-card.c-warn{border-color:rgba(245,158,11,.3);background:#fffbeb}
+.check-card.c-bad{border-color:rgba(239,68,68,.25);background:#fff1f2}
+.check-card.c-ok{border-color:rgba(16,185,129,.2)}
+.check-top{display:flex;align-items:flex-start;gap:7px}
+.check-ic{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px}
+.ic-ok{background:rgba(16,185,129,.12);color:var(--green)}
+.ic-warn{background:rgba(245,158,11,.12);color:var(--orange)}
+.ic-bad{background:rgba(239,68,68,.1);color:var(--red)}
+.check-name{font-size:11px;font-weight:700;flex:1;line-height:1.3}
+.check-answer{font-size:10px;color:var(--gray);margin-top:3px}
+.check-remark{font-size:9.5px;color:#92400e;background:rgba(245,158,11,.1);border-radius:5px;padding:3px 7px;margin-top:4px;line-height:1.5}
+.check-remark-red{font-size:9.5px;color:#991b1b;background:rgba(239,68,68,.07);border-radius:5px;padding:3px 7px;margin-top:4px;line-height:1.5}
+.check-score{display:inline-block;padding:1px 8px;border-radius:10px;font-size:9px;font-weight:700;margin-top:3px}
+.cs-hi{background:#d1fae5;color:#065f46}.cs-md{background:#fef3c7;color:#92400e}.cs-lo{background:#fee2e2;color:#991b1b}
+.media-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.media-row a img{width:64px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--border)}
+.vid-link{background:#eff6ff;color:#1e40af;padding:3px 8px;border-radius:6px;font-size:9px;text-decoration:none}
+.crit-tag{background:var(--red);color:white;padding:1px 6px;border-radius:4px;font-size:8px;font-weight:700;margin-right:4px}
+.doc-tag{color:var(--gray);font-size:9px}
+
+/* ── PEOPLE CARDS ── */
+.people-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:14px}
+.people-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px}
+.people-lbl{font-size:8px;color:rgba(255,255,255,.5);margin-bottom:2px}
+.people-val{font-weight:700;font-size:11px;color:white}
+
+/* ── NOTES SECTION ── */
+.notes-section{background:var(--white);border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:12px}
+.notes-header{background:var(--dark2);color:white;padding:13px 18px;display:flex;align-items:center;gap:10px}
+.notes-body{padding:14px 16px}
+.note-item{display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border-radius:8px;border:1px solid var(--border);margin-bottom:5px;background:var(--white)}
+.note-item:nth-child(even){background:var(--light)}
+.note-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;margin-top:1px}
+.nd-warn{background:rgba(245,158,11,.15);color:var(--orange)}
+.nd-bad{background:rgba(239,68,68,.15);color:var(--red)}
+.nd-ok{background:rgba(16,185,129,.15);color:var(--green)}
+.note-txt{font-size:11px;flex:1;line-height:1.5}
+
+/* ── DL BUTTON ── */
+.dl-btn{display:block;width:100%;padding:14px;background:linear-gradient(135deg,var(--orange-d),var(--orange));color:white;text-align:center;border-radius:12px;text-decoration:none;font-weight:800;font-size:14px;margin:16px 0;box-shadow:0 4px 16px rgba(245,158,11,.35);transition:opacity .2s}
+.dl-btn:hover{opacity:.9}
+.footer-txt{text-align:center;padding:16px;font-size:10px;color:var(--gray);border-top:1px solid var(--border);margin-top:8px}
+
+@media(max-width:600px){
+  .car-row{flex-wrap:wrap}
+  .car-img-box{width:100%;height:140px}
+  .checks-grid,.overview-grid,.people-row{grid-template-columns:1fr}
+  .score-panel{flex-direction:column;align-items:flex-start}
+}
+</style>
 </head>
 <body>
-<div class="topbar"><div class="topbar-in"><div class="brand">@if($logoBase64)<img src="{{$logoBase64}}" alt="">@endif<span class="brand-n">{{$company['name']}}</span></div><span class="ref-tag">{{$inspection->reference_number}}</span></div></div>
-<div class="ctn">
-    <div class="hero">
-        <div class="vname">{{$inspection->vehicle->year}} {{$inspection->vehicle->make}} {{$inspection->vehicle->model}}</div>
-        <div class="vsub">@if($inspection->vehicle->license_plate){{$inspection->vehicle->license_plate}} &bull; @endif @if($inspection->vehicle->color){{$inspection->vehicle->color}} &bull; @endif {{$inspection->vehicle->vin??''}}</div>
-        @if($isScored && $inspection->percentage !== null)
-        <div class="gr"><svg viewBox="0 0 110 110"><circle class="bg" cx="55" cy="55" r="50"/><circle class="fg" cx="55" cy="55" r="50"/></svg><div class="in"><span class="pct">{{number_format($inspection->percentage,0)}}<span class="ps">%</span></span></div></div>
-        @if($gradeStr)<div class="gl">{{$gradeLabel}}</div>@endif
-        @else
-        <div class="dbadge">📝 {{$isRtl?'تقرير فحص وصفي':'Descriptive Report'}}</div>
-        @endif
-        <div class="dateline">{{$isRtl?'الفاحص':'Inspector'}}: {{$inspection->inspector->name??'—'}} &bull; {{$inspection->completed_at?->format('Y-m-d')}}</div>
+<div class="wrap">
+
+{{-- ── TOP BAR ── --}}
+<div class="top-bar">
+  <div class="brand">auto<em>score</em></div>
+  <div style="color:var(--orange);font-weight:800;font-size:10px">{{ $isRtl ? 'الفحص الشامل PREMIUM' : 'PREMIUM INSPECTION' }}</div>
+  <div class="top-meta">{{ $isRtl ? 'رقم التقرير:' : 'Report#:' }} <strong>{{ $inspection->reference_number }}</strong></div>
+</div>
+
+{{-- ── COVER ── --}}
+<div class="cover-card">
+  <div class="cover-head">
+    <div>
+      <div style="color:rgba(255,255,255,.4);font-size:9px;margin-bottom:2px">{{ $inspection->completed_at?->format('Y-m-d') }}</div>
+      <div class="company-name">{{ $company['name'] }}</div>
     </div>
+    <div class="premium-tag">PREMIUM 200+</div>
+  </div>
 
-    @if($inspection->has_critical_failure)<div class="alert-c">⚠ {{$isRtl?'تحذير: يوجد إخفاق حرج يتطلب إصلاحاً فورياً':'Warning: Critical failures detected'}}</div>@endif
-
-    @if($isScored)
-    <div class="stats">
-        <div class="st"><div class="st-l">{{$isRtl?'الدرجة':'Score'}}</div><div class="st-v">{{number_format($inspection->total_score??0,1)}}</div></div>
-        <div class="st"><div class="st-l">{{$isRtl?'النسبة':'Pct'}}</div><div class="st-v">{{number_format($inspection->percentage??0,1)}}%</div></div>
-        <div class="st"><div class="st-l">{{$isRtl?'حرج':'Critical'}}</div><div class="st-v" style="color:{{$inspection->has_critical_failure?'var(--r6)':'var(--g6)'}}">{{$inspection->has_critical_failure?($isRtl?'نعم':'Yes'):($isRtl?'لا':'No')}}</div></div>
+  <div class="car-row">
+    <div class="car-img-box">
+      @if($logoBase64)<img src="{{ $logoBase64 }}" alt="logo">@else 🚗 @endif
     </div>
-    @endif
+    <div class="car-info">
+      <h1>{{ $inspection->vehicle->year }} {{ $inspection->vehicle->make }} {{ $inspection->vehicle->model }}</h1>
+      <div class="car-sub">{{ $inspection->vehicle->fuel_type ?? '' }}{{ $inspection->vehicle->color ? ' / '.$inspection->vehicle->color : '' }}</div>
+      <div class="chips">
+        <div class="chip"><div class="chip-lbl">{{ $isRtl ? 'الشاسيه' : 'VIN' }}</div><div class="chip-val" style="font-size:7px;font-family:monospace">{{ $inspection->vehicle->vin ?? '—' }}</div></div>
+        <div class="chip"><div class="chip-lbl">{{ $isRtl ? 'اللوحة' : 'Plate' }}</div><div class="chip-val">{{ $inspection->vehicle->license_plate ?? '—' }}</div></div>
+        @if($inspection->vehicle->mileage)<div class="chip"><div class="chip-lbl">{{ $isRtl ? 'العداد' : 'KM' }}</div><div class="chip-val">{{ number_format($inspection->vehicle->mileage) }}</div></div>@endif
+        @if($inspection->vehicle->engine_size ?? $inspection->vehicle->fuel_type)<div class="chip"><div class="chip-lbl">{{ $isRtl ? 'المحرك' : 'Engine' }}</div><div class="chip-val">{{ $inspection->vehicle->engine_size ?? $inspection->vehicle->fuel_type }}</div></div>@endif
+      </div>
+    </div>
+  </div>
 
-    <div class="card"><div class="ch">🚗 {{$isRtl?'معلومات المركبة':'Vehicle'}}</div><div class="cb">
-        <div class="ir"><div class="il">{{$isRtl?'المركبة':'Vehicle'}}</div><div class="iv">{{$inspection->vehicle->make}} {{$inspection->vehicle->model}} {{$inspection->vehicle->year}}</div></div>
-        <div class="ir"><div class="il">{{$isRtl?'اللوحة':'Plate'}}</div><div class="iv">{{$inspection->vehicle->license_plate??'—'}}</div></div>
-        <div class="ir"><div class="il">{{$isRtl?'الشاسيه':'VIN'}}</div><div class="iv" style="font-size:.8rem;word-break:break-all">{{$inspection->vehicle->vin??'—'}}</div></div>
-        <div class="ir"><div class="il">{{$isRtl?'الكيلومتر':'Mileage'}}</div><div class="iv">{{$inspection->vehicle->mileage?number_format($inspection->vehicle->mileage).' km':'—'}}</div></div>
-        <div class="ir"><div class="il">{{$isRtl?'المالك':'Owner'}}</div><div class="iv">{{$inspection->vehicle->owner_name??'—'}}</div></div>
-    </div></div>
+  <div class="score-panel">
+    <div class="grade-circle g-{{ $gradeLetter }}" style="color:white">{{ $gradeLetter }}</div>
+    <div class="score-info">
+      <div class="score-lbl">{{ $isRtl ? 'النسبة الإجمالية' : 'Overall Score' }}</div>
+      <div class="score-num">{{ round($pct) }}<span style="font-size:16px">%</span></div>
+      <div class="score-bar-bg"><div class="score-bar-fill" style="width:{{ $pct }}%"></div></div>
+    </div>
+    <div style="text-align:center">
+      <div class="result-badge {{ $isPass ? 'pass' : 'fail' }}">{{ $isPass ? '✓ '.($isRtl ? 'ناجحة' : 'Pass') : '✗ '.($isRtl ? 'مرفوضة' : 'Fail') }}</div>
+      <div class="mkt-lbl">{{ $isRtl ? 'التقييم' : 'Grade' }}</div>
+      <div class="mkt-val">{{ $gradeLabel }}</div>
+    </div>
+  </div>
 
-    @foreach($sectionResults as $sectionId => $data)
-    @php $section=$data['section'];$results=$data['results']; @endphp
-    <div class="card">
-        <div class="sh" onclick="toggleSec('s{{$loop->index}}')"><span>{{$isRtl?'القسم':'Section'}} {{$loop->iteration}} — {{$section->name}}</span><span class="sa" id="arrow-s{{$loop->index}}">▾</span></div>
-        <div class="sb" id="s{{$loop->index}}">
-        @foreach($results as $item)
-            @php
-                $question=$item['question'];$result=$item['result'];
-                $qType=is_object($question->type)?$question->type->value:$question->type;
-                $isScorable=$isScored&&!in_array($qType,['text','photo'])&&$question->max_score>0;
-                $score=$result?->score??0;$maxScore=$question->max_score;
-                $pct=($isScorable&&$maxScore>0)?($score/$maxScore)*100:-1;
-                $pc=$pct>=75?'ph':($pct>=50?'pm':'pl');
-            @endphp
-            <div class="qr">
-                <div class="qt"><div class="ql">@if($question->is_critical)<span class="cd"></span>@endif {{$question->label}}</div>@if($isScorable&&$result)<span class="qp {{$pc}}">{{number_format($score,1)}}/{{intval($maxScore)}}</span>@endif</div>
-                <div class="qa">
-                    @if($result)
-                        @if($qType==='checkbox') {{$result->answer=='1'?($isRtl?'✅ نعم':'✅ Yes'):($isRtl?'☐ لا':'☐ No')}}
-                        @elseif($qType==='photo') <span style="color:var(--g400);font-size:.78rem">📷 {{$isRtl?'صور':'Photos'}}</span>
-                        @else {{$result->answer??'—'}}
-                        @endif
-                    @else <span style="color:var(--g400)">—</span>
-                    @endif
-                </div>
-                @if($result?->remarks)<div class="qrm">💬 {{$result->remarks}}</div>@endif
-                @if($result?->is_critical_fail)<div class="qcf">{{$isRtl?'⚠ إخفاق حرج':'⚠ Critical Fail'}}</div>@endif
-                @if($result && $result->media && $result->media->count())
-                <div class="qph">@foreach($result->media as $m)@if($m->isImage())<img src="{{$m->url}}" alt="{{$m->original_name}}" onclick="openLB({{$allPhotos->search(fn($p)=>$p['url']===$m->url)?:0}})">@endif @endforeach</div>
-                @endif
-            </div>
-        @endforeach
+  <div class="people-row">
+    <div class="people-card"><div class="people-lbl">{{ $isRtl ? 'اسم المالك' : 'Owner' }}</div><div class="people-val">{{ $inspection->vehicle->owner_name ?? '—' }}</div></div>
+    <div class="people-card"><div class="people-lbl">{{ $isRtl ? 'الفاحص' : 'Inspector' }}</div><div class="people-val">{{ $inspection->inspector->name ?? '—' }}</div></div>
+  </div>
+</div>
+
+{{-- ── CRITICAL ALERT ── --}}
+@if($inspection->has_critical_failure)
+<div style="background:#fff1f2;border:2px solid var(--red);border-radius:12px;padding:12px 16px;color:#991b1b;font-weight:700;margin-bottom:12px;text-align:center">
+  ⚠ {{ $isRtl ? 'تحذير: يوجد إخفاق حرج يتطلب إصلاحاً فورياً' : 'Warning: Critical failures detected — immediate repair required' }}
+</div>
+@endif
+
+{{-- ── SECTIONS OVERVIEW ── --}}
+@php
+$sectionStatuses = [];
+foreach($sectionResults as $sid => $sdata) {
+    $st = 'ok';
+    foreach($sdata['results'] as $item) {
+        $r = $item['result'];
+        if($r && $r->is_critical_fail) { $st = 'bad'; break; }
+        if($r && $r->remarks) $st = $st === 'bad' ? 'bad' : 'warn';
+    }
+    $sectionStatuses[$sid] = $st;
+}
+@endphp
+<div class="overview-grid" style="margin-bottom:12px">
+  @foreach($sectionResults as $sid => $sdata)
+  @php $st = $sectionStatuses[$sid]; $secName = $sdata['section']->name; @endphp
+  <div class="ov-card">
+    <div class="ov-icon">📋</div>
+    <div class="ov-name">{{ $secName }}</div>
+    <div class="ov-st {{ $st }}">{{ $st==='ok' ? '✔' : ($st==='warn' ? '⚠' : '❌') }}</div>
+  </div>
+  @endforeach
+</div>
+
+{{-- ── SECTION CARDS ── --}}
+@foreach($sectionResults as $sectionId => $data)
+@php
+  $section = $data['section'];
+  $results = $data['results'];
+  $st = $sectionStatuses[$sectionId];
+  $badgeClass = $st === 'ok' ? 'sb-ok' : ($st === 'warn' ? 'sb-warn' : 'sb-bad');
+  $badgeText = $st === 'ok' ? ($isRtl ? '✔ جيد' : '✔ Good') : ($st === 'warn' ? ($isRtl ? '⚠ انتباه' : '⚠ Attention') : ($isRtl ? '❌ مشاكل' : '❌ Issues'));
+  $idx = $loop->index;
+@endphp
+<div class="section-wrap">
+  <div class="sec-header" onclick="toggleSec({{ $idx }})">
+    <div class="sec-icon">📋</div>
+    <div style="flex:1">
+      <div class="sec-title-txt">{{ $section->name }}</div>
+      @if($section->description)<div class="sec-sub-txt">{{ \Illuminate\Support\Str::limit($section->description, 60) }}</div>@endif
+    </div>
+    <span class="sec-badge-wrap {{ $badgeClass }}">{{ $badgeText }}</span>
+    <span class="sec-arrow" id="arrow-{{ $idx }}">▾</span>
+  </div>
+
+  <div class="sec-body" id="secbody-{{ $idx }}">
+    <div class="checks-grid">
+    @foreach($results as $item)
+    @php
+      $question = $item['question'];
+      $result   = $item['result'];
+      $qType    = is_object($question->type) ? $question->type->value : $question->type;
+      $isScorable = !in_array($qType, ['text','photo','video']) && $question->max_score > 0;
+      $score    = $result?->score ?? 0;
+      $maxScore = $question->max_score;
+      $pctQ     = ($isScorable && $maxScore > 0) ? ($score/$maxScore)*100 : -1;
+      $scoreClass = $pctQ >= 75 ? 'cs-hi' : ($pctQ >= 50 ? 'cs-md' : 'cs-lo');
+
+      // Determine status
+      $qs = 'ok';
+      if($result?->is_critical_fail) $qs = 'bad';
+      elseif($result?->remarks) $qs = 'warn';
+      elseif($isScorable && $result && $pctQ < 50) $qs = $pctQ < 30 ? 'bad' : 'warn';
+
+      $cardClass = $qs === 'bad' ? 'c-bad' : ($qs === 'warn' ? 'c-warn' : 'c-ok');
+      $icClass   = $qs === 'bad' ? 'ic-bad' : ($qs === 'warn' ? 'ic-warn' : 'ic-ok');
+      $icIcon    = $qs === 'bad' ? '❌' : ($qs === 'warn' ? '⚠' : '✔');
+    @endphp
+    <div class="check-card {{ $cardClass }}">
+      <div class="check-top">
+        <div class="check-ic {{ $icClass }}">{{ $icIcon }}</div>
+        <div class="check-name">
+          {{ $question->label }}
+          @if($question->is_critical)<span class="crit-tag">{{ $isRtl ? 'حرج' : 'CRIT' }}</span>@endif
         </div>
+      </div>
+      @if($result)
+        @if($qType === 'checkbox')
+          <div class="check-answer">{{ $result->answer == '1' ? '✅ '.($isRtl?'نعم':'Yes') : '☐ '.($isRtl?'لا':'No') }}</div>
+        @elseif(in_array($qType, ['photo','video']))
+          <div class="doc-tag">📎 {{ $isRtl ? 'مرفق' : 'Attached' }}</div>
+        @else
+          <div class="check-answer">{{ $result->answer }}</div>
+        @endif
+        @if($isScorable && $result)
+          <div><span class="check-score {{ $scoreClass }}">{{ number_format($score,1) }} / {{ intval($maxScore) }}</span></div>
+        @endif
+        @if($result->remarks)
+          <div class="{{ $qs === 'bad' ? 'check-remark-red' : 'check-remark' }}">● {{ $result->remarks }}</div>
+        @endif
+        @if($result->is_critical_fail)
+          <div style="margin-top:4px"><span class="crit-tag">⚠ {{ $isRtl ? 'إخفاق حرج' : 'Critical Fail' }}</span></div>
+        @endif
+        @if($result->media && $result->media->count())
+          <div class="media-row">
+            @foreach($result->media as $m)
+              @if($m->isImage())<a href="{{ $m->url }}" target="_blank"><img src="{{ $m->url }}" alt=""></a>
+              @elseif($m->isVideo())<a href="{{ $m->url }}" target="_blank" class="vid-link">🎬 {{ \Illuminate\Support\Str::limit($m->original_name,18) }}</a>@endif
+            @endforeach
+          </div>
+        @endif
+      @else
+        <div class="doc-tag">—</div>
+      @endif
     </div>
     @endforeach
+    </div>{{-- /checks-grid --}}
+  </div>
+</div>
+@endforeach
 
-    @if($allPhotos->count())
-    <div class="card"><div class="ch">📷 {{$isRtl?'معرض الصور':'Photo Gallery'}} <span style="color:var(--g400);font-weight:400;font-size:.8rem;margin-{{$isRtl?'right':'left'}}:6px">({{$allPhotos->count()}})</span></div>
-        <div class="gg">@foreach($allPhotos as $i=>$photo)<div class="gt" onclick="openLB({{$i}})"><img src="{{$photo['url']}}" alt="{{$photo['name']}}" loading="lazy"><div class="cap">{{$photo['question']}}</div></div>@endforeach</div>
-    </div>
-    @endif
+{{-- ── INSPECTOR NOTES ── --}}
+@if($inspection->notes)
+<div class="notes-section">
+  <div class="notes-header">
+    <div class="sec-icon">📝</div>
+    <div class="sec-title-txt">{{ $isRtl ? 'ملاحظات الفاحص' : 'Inspector Notes' }}</div>
+  </div>
+  <div style="padding:14px 16px;font-size:12px;color:var(--dark)">{{ $inspection->notes }}</div>
+</div>
+@endif
 
-    @if($inspection->notes)<div class="card"><div class="ch">📝 {{$isRtl?'ملاحظات':'Notes'}}</div><div class="cb" style="font-size:.88rem;color:var(--g500)">{{$inspection->notes}}</div></div>@endif
+{{-- ── DOWNLOAD BUTTON ── --}}
+<a href="{{ route('share.pdf', $token) }}" class="dl-btn">
+  📄 {{ $isRtl ? 'تحميل التقرير PDF' : 'Download PDF Report' }}
+</a>
 
-    <a href="{{route('share.pdf',$token)}}" class="dl">📄 {{$isRtl?'تحميل التقرير PDF':'Download PDF Report'}}</a>
-    <div class="ft">{{$company['name']}} @if($company['phone'])&bull; {{$company['phone']}}@endif @if($company['website'])&bull; {{$company['website']}}@endif<br>{{$isRtl?'تم إنشاء التقرير بتاريخ':'Generated'}} {{$inspection->completed_at?->format('Y-m-d H:i')}}</div>
+<div class="footer-txt">
+  {{ $company['name'] }}
+  @if($company['website']) &bull; {{ $company['website'] }} @endif
+  @if($company['phone']) &bull; {{ $company['phone'] }} @endif
+  <br>{{ $isRtl ? 'تم إنشاء التقرير بتاريخ' : 'Generated on' }} {{ $inspection->completed_at?->format('Y-m-d H:i') }}
 </div>
 
-<div class="lb" id="lb">
-    <button class="lbc" onclick="closeLB()">✕</button>
-    <button class="lbn lbp" onclick="navLB(-1)">{{$isRtl?'›':'‹'}}</button>
-    <button class="lbn lbx" onclick="navLB(1)">{{$isRtl?'‹':'›'}}</button>
-    <img class="lbi" id="lbi" src="" alt="">
-    <div class="lbt" id="lbt"></div>
-    <div class="lbk" id="lbk"></div>
-</div>
+</div>{{-- /wrap --}}
+
 <script>
-var P=@json($allPhotos->values()),I=0;
-function openLB(i){I=i;rLB();document.getElementById('lb').classList.add('on');document.body.style.overflow='hidden'}
-function closeLB(){document.getElementById('lb').classList.remove('on');document.body.style.overflow=''}
-function navLB(d){I=(I+d+P.length)%P.length;rLB()}
-function rLB(){var p=P[I];document.getElementById('lbi').src=p.url;document.getElementById('lbt').textContent=p.question+' — '+p.section;document.getElementById('lbk').textContent=(I+1)+' / '+P.length}
-function toggleSec(id){var e=document.getElementById(id),a=document.getElementById('arrow-'+id);if(e.style.display==='none'){e.style.display='block';a.style.transform='rotate(0)'}else{e.style.display='none';a.style.transform='rotate(-90deg)'}}
-document.addEventListener('keydown',function(e){if(!document.getElementById('lb').classList.contains('on'))return;if(e.key==='Escape')closeLB();if(e.key==='ArrowLeft')navLB({{$isRtl?'1':'-1'}});if(e.key==='ArrowRight')navLB({{$isRtl?'-1':'1'}})});
-var tX=0;document.getElementById('lb').addEventListener('touchstart',function(e){tX=e.touches[0].clientX});document.getElementById('lb').addEventListener('touchend',function(e){var d=e.changedTouches[0].clientX-tX;if(Math.abs(d)>50)navLB(d>0?{{$isRtl?'1':'-1'}}:{{$isRtl?'-1':'1'}})});
+function toggleSec(idx) {
+    const body  = document.getElementById('secbody-' + idx);
+    const arrow = document.getElementById('arrow-' + idx);
+    const open  = body.style.display !== 'none';
+    body.style.display  = open ? 'none' : 'block';
+    arrow.style.transform = open ? 'rotate(-90deg)' : 'rotate(0deg)';
+}
 </script>
 </body>
 </html>
