@@ -98,17 +98,25 @@ fs.writeFileSync(tmpHtml, template, 'utf8');
 
         // Generate PDF
         await page.pdf({
-            path:              outputPath,
-            format:            'A4',
-            printBackground:   true,
-            displayHeaderFooter: false,
+            path:            outputPath,
+            format:          'A4',
+            printBackground: true,
+            displayHeaderFooter: true,
+            headerTemplate: '<span></span>',
+            footerTemplate: `
+              <div style="width:100%;padding:0 20px;display:flex;justify-content:space-between;
+                          align-items:center;background:#0f172a;color:rgba(255,255,255,.4);
+                          font-size:8px;font-family:Tahoma,Arial,sans-serif;box-sizing:border-box;height:24px">
+                <span style="color:rgba(255,255,255,.6);font-weight:800">auto<span style="color:#f59e0b">score</span></span>
+                <span class="title" style="color:rgba(255,255,255,.4)"></span>
+                <span>الصفحة <span class="pageNumber"></span> من <span class="totalPages"></span></span>
+              </div>`,
             margin: {
                 top:    '0mm',
-                bottom: '0mm',
+                bottom: '24px',
                 left:   '0mm',
                 right:  '0mm',
             },
-            preferCSSPageSize: true,
         });
 
         await browser.close();

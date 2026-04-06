@@ -44,12 +44,11 @@ body {
   width: 210mm;
   min-height: 297mm;
   margin: 0 auto;
-  background: var(--white);
-  position: relative;
-  overflow: hidden;
+  background: #f1f5f9;
   page-break-after: always;
-  display: flex;
-  flex-direction: column;
+}
+.page.auto-height {
+  min-height: auto;
 }
 
 @media print {
@@ -294,6 +293,13 @@ body {
 .st-bad  { background: rgba(239,68,68,.12); color: var(--red); }
 
 /* ═══════════ SECTION PAGES ═══════════ */
+.section-card {
+  margin: 14px 16px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,.1);
+  background: var(--white);
+}
 .sec-header {
   background: var(--dark2);
   padding: 14px 20px;
@@ -301,6 +307,7 @@ body {
   align-items: center;
   gap: 12px;
   color: white;
+  border-radius: 14px 14px 0 0;
 }
 .sec-icon-box {
   width: 42px; height: 42px;
@@ -326,7 +333,7 @@ body {
 .sb-warn { background: rgba(245,158,11,.2); color: #fde68a; border: 1px solid rgba(245,158,11,.25); }
 .sb-bad  { background: rgba(239,68,68,.2); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
 
-.sec-body { padding: 14px 18px; flex: 1; }
+.sec-body { padding: 14px 18px; }
 
 .sec-intro {
   background: var(--light);
@@ -515,8 +522,8 @@ body {
 }
 
 /* ═══════════ ALL NOTES PAGE ═══════════ */
-.notes-wrap { padding: 14px 18px; flex: 1; }
-.notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.notes-wrap { padding: 14px 18px; }
+.notes-grid { columns: 2; column-gap: 8px; }
 .note-row {
   display: flex;
   align-items: flex-start;
@@ -525,6 +532,8 @@ body {
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--white);
+  break-inside: avoid;
+  margin-bottom: 5px;
 }
 .note-row:nth-child(even) { background: var(--light); }
 .note-dot {
@@ -543,15 +552,7 @@ body {
 .note-text { font-size: 11px; color: var(--dark); flex: 1; line-height: 1.5; }
 
 /* ═══════════ PAGE FOOTER ═══════════ */
-.page-foot {
-  background: var(--dark);
-  padding: 6px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: rgba(255,255,255,.35);
-  font-size: 8.5px;
-}
+.page-foot { display: none; }
 .foot-brand { font-weight: 800; color: rgba(255,255,255,.6); }
 .foot-brand em { color: var(--orange); font-style: normal; }
 
@@ -884,18 +885,20 @@ function sectionPage(sec) {
       <div style="color:#94a3b8;font-size:10px">${d.vehicle.name}</div>
       <div class="top-meta">رقم التقرير: <strong>${d.report_number}</strong></div>
     </div>
-    <div class="sec-header">
-      <div class="sec-icon-box">${sec.icon}</div>
-      <div class="sec-title-wrap">
-        <div class="sec-title">${sec.title}</div>
-        <div class="sec-sub">${sec.sub}</div>
+    <div class="section-card">
+      <div class="sec-header">
+        <div class="sec-icon-box">${sec.icon}</div>
+        <div class="sec-title-wrap">
+          <div class="sec-title">${sec.title}</div>
+          <div class="sec-sub">${sec.sub}</div>
+        </div>
+        <span class="sec-badge ${badgeClass(sec.status)}">${sec.badge}</span>
       </div>
-      <span class="sec-badge ${badgeClass(sec.status)}">${sec.badge}</span>
-    </div>
-    <div class="sec-body">
-      <div class="sec-intro">${sec.intro}</div>
-      <div class="checks-grid">${items}</div>
-      ${extra}
+      <div class="sec-body">
+        <div class="sec-intro">${sec.intro}</div>
+        <div class="checks-grid">${items}</div>
+        ${extra}
+      </div>
     </div>
     ${footerHTML(sec.title)}
   </div>`;
@@ -967,7 +970,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     </div>
 
-    <div style="padding:12px 18px 4px;flex:1">
+    <div style="padding:12px 18px 4px">
       <div style="font-weight:800;font-size:12px;margin-bottom:8px;color:var(--dark)">📋 نقاط الفحص</div>
       <div class="overview-grid">${ovGrid}</div>
     </div>
@@ -997,13 +1000,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // ── ALL NOTES PAGE ─────────────────────────────────────────────────────────
   if (d.all_notes && d.all_notes.length) {
-    html += `<div class="page">
+    html += `<div class="page auto-height">
       <div class="top-bar">
         <div class="brand">auto<em>score</em></div>
         <div style="color:#94a3b8;font-size:10px">${d.vehicle.name}</div>
         <div class="top-meta">رقم التقرير: <strong>${d.report_number}</strong></div>
       </div>
-      <div class="sec-header">
+      <div class="section-card" style="margin:14px 16px">
+      <div class="sec-header" style="border-radius:14px 14px 0 0">
         <div class="sec-icon-box">📋</div>
         <div class="sec-title-wrap">
           <div class="sec-title">جميع الملاحظات</div>
@@ -1020,6 +1024,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>`).join('')}
         </div>
       </div>
+      </div>
       ${footerHTML('جميع الملاحظات')}
     </div>`;
   }
@@ -1034,13 +1039,14 @@ document.addEventListener('DOMContentLoaded', function() {
       `</a>`
     ).join('');
 
-    html += `<div class="page">
+    html += `<div class="page auto-height">
       <div class="top-bar">
         <div class="brand">auto<em>score</em></div>
         <div style="color:#94a3b8;font-size:10px">${d.vehicle.name}</div>
         <div class="top-meta">رقم التقرير: <strong>${d.report_number}</strong></div>
       </div>
-      <div class="sec-header">
+      <div class="section-card" style="margin:14px 16px">
+      <div class="sec-header" style="border-radius:14px 14px 0 0">
         <div class="sec-icon-box">📷</div>
         <div class="sec-title-wrap">
           <div class="sec-title">صور الفحص</div>
