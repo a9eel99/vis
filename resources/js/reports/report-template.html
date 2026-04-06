@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تقرير فحص المركبة</title>
+<!-- Google Fonts removed for performance — using system Arabic fonts -->
+
+<script>/* __REPORT_DATA_PLACEHOLDER__ */</script>
+
+<style>
+/* ═══════════ CSS VARIABLES ═══════════ */
+:root {
+  --orange:    #f59e0b;
+  --orange-d:  #d97706;
+  --green:     #10b981;
+  --red:       #ef4444;
+  --blue:      #3b82f6;
+  --dark:      #0f172a;
+  --dark2:     #1e293b;
+  --dark3:     #334155;
+  --gray:      #64748b;
+  --light:     #f8fafc;
+  --border:    #e2e8f0;
+  --white:     #ffffff;
+  --shadow:    0 4px 20px rgba(0,0,0,.08);
+  --radius:    12px;
+  --font:      'Segoe UI', Tahoma, 'Arial Unicode MS', Arial, sans-serif;
+}
+
+/* ═══════════ RESET & BASE ═══════════ */
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: var(--font);
+  background: #f1f5f9;
+  color: var(--dark);
+  font-size: 13px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ═══════════ PAGE LAYOUT ═══════════ */
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  background: var(--white);
+  position: relative;
+  overflow: hidden;
+  page-break-after: always;
+  display: flex;
+  flex-direction: column;
+}
+
+@media print {
+  body { background: white; }
+  .page { margin: 0; box-shadow: none; }
+  @page { size: A4; margin: 0; }
+}
+
+@media screen {
+  .page {
+    margin: 12px auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,.12);
+    border-radius: 4px;
+  }
+}
+
+/* ═══════════ PAGE TOP BAR ═══════════ */
+.top-bar {
+  background: var(--dark);
+  padding: 8px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+}
+.brand { font-size: 16px; font-weight: 900; letter-spacing: -0.5px; }
+.brand em { color: var(--orange); font-style: normal; }
+.top-meta { font-size: 10px; color: #94a3b8; }
+.top-meta strong { color: white; }
+
+/* ═══════════ COVER PAGE ═══════════ */
+.cover-hero {
+  background: linear-gradient(145deg, var(--dark) 0%, var(--dark2) 55%, #0c1526 100%);
+  padding: 28px 24px 20px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.cover-hero::before {
+  content:'';
+  position: absolute;
+  top: -40px; left: -40px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(245,158,11,.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cover-hero::after {
+  content:'';
+  position: absolute;
+  bottom: -60px; right: -60px;
+  width: 250px; height: 250px;
+  background: radial-gradient(circle, rgba(59,130,246,.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cover-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+.cover-brand-big { font-size: 20px; font-weight: 900; }
+.cover-brand-big em { color: var(--orange); font-style: normal; }
+.premium-tag {
+  background: linear-gradient(135deg, var(--orange), var(--orange-d));
+  color: white;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.car-section {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+.car-image-wrap {
+  width: 200px;
+  height: 130px;
+  background: rgba(255,255,255,.06);
+  border: 2px solid rgba(255,255,255,.1);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.car-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.car-image-placeholder {
+  font-size: 52px;
+  opacity: .4;
+}
+.car-details { flex: 1; padding-top: 4px; }
+.car-name {
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.car-sub {
+  color: rgba(255,255,255,.5);
+  font-size: 11px;
+  margin-bottom: 14px;
+}
+.car-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.car-chip {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 72px;
+}
+.car-chip-lbl { color: rgba(255,255,255,.4); font-size: 8px; margin-bottom: 2px; }
+.car-chip-val { font-weight: 700; font-size: 11px; }
+
+/* Score Panel */
+.score-panel {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* SVG Gauge */
+.gauge-wrap { position: relative; width: 100px; height: 60px; flex-shrink: 0; }
+.gauge-wrap svg { overflow: visible; }
+.gauge-pct-text {
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  font-weight: 900;
+  color: white;
+  white-space: nowrap;
+}
+
+.grade-badge {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.grade-A  { background: linear-gradient(135deg, #059669, #10b981); color: white; box-shadow: 0 0 20px rgba(16,185,129,.4); }
+.grade-B  { background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; box-shadow: 0 0 20px rgba(59,130,246,.4); }
+.grade-Bp { background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; box-shadow: 0 0 20px rgba(6,182,212,.4); }
+.grade-C  { background: linear-gradient(135deg, var(--orange-d), var(--orange)); color: white; box-shadow: 0 0 20px rgba(245,158,11,.4); }
+.grade-D  { background: linear-gradient(135deg, #ea580c, #f97316); color: white; box-shadow: 0 0 20px rgba(249,115,22,.4); }
+.grade-F  { background: linear-gradient(135deg, #dc2626, var(--red)); color: white; box-shadow: 0 0 20px rgba(239,68,68,.4); }
+
+.score-info { flex: 1; }
+.score-title { font-size: 9px; color: rgba(255,255,255,.4); margin-bottom: 2px; }
+.score-number {
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--orange);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.score-number span { font-size: 16px; }
+.score-bar-bg {
+  height: 6px;
+  background: rgba(255,255,255,.1);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.score-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--orange), var(--green)); }
+.score-label { font-size: 9px; color: rgba(255,255,255,.4); }
+
+.result-col {
+  text-align: center;
+  padding: 0 16px;
+  border-right: 1px solid rgba(255,255,255,.08);
+}
+.result-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 13px;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+.pill-pass { background: rgba(16,185,129,.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,.25); }
+.pill-fail { background: rgba(239,68,68,.2); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+.mkt-lbl { font-size: 8px; color: rgba(255,255,255,.4); }
+.mkt-val { font-size: 15px; font-weight: 900; color: var(--orange); }
+
+/* Cover overview grid */
+.overview-grid {
+  padding: 14px 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+.ov-item {
+  background: var(--light);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: box-shadow .2s;
+}
+.ov-icon { font-size: 18px; }
+.ov-name { font-size: 11px; font-weight: 700; flex: 1; }
+.ov-status {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.st-ok   { background: rgba(16,185,129,.12); color: var(--green); }
+.st-warn { background: rgba(245,158,11,.12); color: var(--orange); }
+.st-bad  { background: rgba(239,68,68,.12); color: var(--red); }
+
+/* ═══════════ SECTION PAGES ═══════════ */
+.sec-header {
+  background: var(--dark2);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+}
+.sec-icon-box {
+  width: 42px; height: 42px;
+  background: rgba(245,158,11,.15);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.sec-title-wrap .sec-title { font-size: 17px; font-weight: 800; }
+.sec-title-wrap .sec-sub { font-size: 10px; color: #94a3b8; margin-top: 1px; }
+.sec-badge {
+  margin-right: auto;
+  margin-left: 0;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.sb-ok   { background: rgba(16,185,129,.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,.25); }
+.sb-warn { background: rgba(245,158,11,.2); color: #fde68a; border: 1px solid rgba(245,158,11,.25); }
+.sb-bad  { background: rgba(239,68,68,.2); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+
+.sec-body { padding: 14px 18px; flex: 1; }
+
+.sec-intro {
+  background: var(--light);
+  border-right: 3px solid var(--orange);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  font-size: 10px;
+  color: var(--gray);
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+
+/* Check items grid */
+.checks-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+}
+.check-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: var(--white);
+  transition: box-shadow .2s;
+}
+.check-card.warn { border-color: rgba(245,158,11,.3); background: #fffbeb; }
+.check-card.bad  { border-color: rgba(239,68,68,.25); background: #fff1f2; }
+.check-card.ok   { border-color: rgba(16,185,129,.2); }
+
+.check-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.check-ic {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.ci-ok   { background: rgba(16,185,129,.12); color: var(--green); }
+.ci-warn { background: rgba(245,158,11,.12); color: var(--orange); }
+.ci-bad  { background: rgba(239,68,68,.1); color: var(--red); }
+
+.check-name { font-size: 11px; font-weight: 700; flex: 1; line-height: 1.3; }
+
+.check-note {
+  font-size: 9.5px;
+  color: #92400e;
+  background: rgba(245,158,11,.1);
+  border-radius: 5px;
+  padding: 3px 8px;
+  margin-top: 5px;
+  line-height: 1.6;
+}
+.check-note-red {
+  font-size: 9.5px;
+  color: #991b1b;
+  background: rgba(239,68,68,.07);
+  border-radius: 5px;
+  padding: 3px 8px;
+  margin-top: 5px;
+  line-height: 1.6;
+}
+.check-img {
+  margin-top: 6px;
+  width: 100%;
+  height: 56px;
+  border-radius: 7px;
+  object-fit: cover;
+  background: var(--border);
+}
+.img-placeholder {
+  width: 100%;
+  height: 56px;
+  border-radius: 7px;
+  background: var(--light);
+  border: 1px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--border);
+  font-size: 20px;
+  margin-top: 6px;
+}
+
+/* ═══════════ INFO TABLE ═══════════ */
+.info-tbl {
+  width: 100%;
+  border-collapse: collapse;
+}
+.info-tbl td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+.info-tbl td:first-child {
+  background: var(--light);
+  font-weight: 700;
+  color: var(--gray);
+  width: 38%;
+}
+.info-tbl tr:last-child td { border-bottom: none; }
+
+/* ═══════════ HISTORY ═══════════ */
+.hist-list { display: flex; flex-direction: column; gap: 6px; }
+.hist-item {
+  border-radius: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.hist-item.danger { background: #fff1f2; border-color: rgba(239,68,68,.2); }
+.hist-item.warning { background: #fffbeb; border-color: rgba(245,158,11,.2); }
+.h-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.h-num.ok  { background: var(--green); }
+.h-num.bad { background: var(--red); }
+.h-title  { font-weight: 700; font-size: 11px; }
+.h-desc   { font-size: 10px; color: var(--gray); margin-top: 2px; line-height: 1.5; }
+.h-date   { font-size: 9px; color: var(--gray); margin-right: auto; margin-left: 0; white-space: nowrap; margin-top: 2px; }
+
+/* ═══════════ BOSCH TABLE ═══════════ */
+.bosch-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+.bosch-tbl th {
+  background: var(--dark2);
+  color: white;
+  padding: 8px 12px;
+  font-size: 10px;
+  text-align: right;
+}
+.bosch-tbl td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+}
+.bosch-tbl tr:nth-child(even) td { background: var(--light); }
+.chip-pass { background: rgba(16,185,129,.12); color: var(--green); padding: 2px 10px; border-radius: 12px; font-size: 9px; font-weight: 700; }
+.chip-fail { background: rgba(239,68,68,.12); color: var(--red); padding: 2px 10px; border-radius: 12px; font-size: 9px; font-weight: 700; }
+
+/* ═══════════ PHOTOS PAGE ═══════════ */
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 14px 18px;
+}
+.photo-thumb {
+  border-radius: 8px;
+  overflow: hidden;
+  height: 88px;
+  background: var(--light);
+  border: 1px solid var(--border);
+}
+.photo-thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.photo-placeholder {
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: var(--border);
+}
+
+/* ═══════════ ALL NOTES PAGE ═══════════ */
+.notes-wrap { padding: 14px 18px; flex: 1; }
+.notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.note-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--white);
+}
+.note-row:nth-child(even) { background: var(--light); }
+.note-dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.nd-warn { background: rgba(245,158,11,.15); color: var(--orange); }
+.nd-bad  { background: rgba(239,68,68,.15); color: var(--red); }
+.nd-ok   { background: rgba(16,185,129,.15); color: var(--green); }
+.note-text { font-size: 11px; color: var(--dark); flex: 1; line-height: 1.5; }
+
+/* ═══════════ PAGE FOOTER ═══════════ */
+.page-foot {
+  background: var(--dark);
+  padding: 6px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgba(255,255,255,.35);
+  font-size: 8.5px;
+}
+.foot-brand { font-weight: 800; color: rgba(255,255,255,.6); }
+.foot-brand em { color: var(--orange); font-style: normal; }
+
+/* ═══════════ UTILITIES ═══════════ */
+.divider { height: 1px; background: var(--border); margin: 10px 0; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.section-label {
+  font-weight: 800;
+  font-size: 12px;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid var(--orange);
+  color: var(--dark);
+}
+.tag-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag {
+  background: var(--light);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: 14px;
+  font-size: 9.5px;
+}
+
+/* half-separator between two sections on same page */
+.sec-divider { height: 4px; background: var(--border); }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     DATA RENDERING — Pure JS, no framework
+════════════════════════════════════════════ -->
+<script>
+// Fallback sample data if not injected
+if (!window.__REPORT_DATA__) {
+  window.__REPORT_DATA__ = {
+    report_number: "VIS-20260405-TEST",
+    date: "2026-04-05",
+    center_name: "مركز فحص المركبات",
+    center_logo: null,
+    result_pass: true,
+    final_grade: "C",
+    score_pct: 67,
+    market_value: "26,000",
+    currency: "د.أ",
+    vehicle: {
+      image: null,
+      name: "Toyota RAV4 2024",
+      sub: "سيارة دفع رباعي هجين / فيراني",
+      vin: "JTMRWRFV2RD246034",
+      plate: "49-33720",
+      mileage: "17,394 KM",
+      engine: "Hybrid 2500",
+      color: "فيراني",
+      year: "2024",
+      make: "Toyota",
+      model: "RAV4"
+    },
+    owner_name: "مؤسسة شادي سلامة للاستيراد والتصدير",
+    buyer_name: "نوال ابراهيم سامي الكرادشه",
+    sections_overview: [
+      { icon:"📜", name:"التاريخ والسجلات", status:"warn" },
+      { icon:"🚗", name:"الهيكل الخارجي",   status:"warn" },
+      { icon:"🔩", name:"الشاصي والهيكل",   status:"warn" },
+      { icon:"⚙️", name:"المحرك وناقل الحركة", status:"bad" },
+      { icon:"🔧", name:"نظام التوجيه",      status:"warn" },
+      { icon:"🛣️", name:"فحص الطريق",        status:"ok"   },
+      { icon:"⚡", name:"المجموعة الكهربائية", status:"warn" },
+      { icon:"❄️", name:"نظام التكييف",       status:"ok"   },
+      { icon:"🛑", name:"المكابح والسلامة",   status:"warn" },
+      { icon:"🔬", name:"فحص Bosch للسلامة", status:"ok"   }
+    ],
+    history: [
+      { num:1, type:"bad", title:"سجل تأمين — خسارة كلية", desc:"تعويض كلي > 75% DAMAGE | الضرر الرئيسي: من جميع الجهات | وايت مارش، ماريلاند", date:"N/A", style:"danger" },
+      { num:2, type:"ok",  title:"سجل معلومات عامة — مركبة مدرجة للبيع", desc:"تاجر عبر الإنترنت", date:"2024/06/04", style:"" },
+      { num:4, type:"ok",  title:"سجل تسجيل — نجحت في فحص السلامة", desc:"فولز تشيرش - فرجينيا", date:"2024/07/05", style:"" },
+      { num:6, type:"bad", title:"سجل تأمين — خسارة كلية", desc:"شركات التأمين: التأمين العام الوطني", date:"2024/08/05", style:"danger" },
+      { num:10,type:"bad", title:"سجل تأمين — تعويض كلي (Salvage)", desc:"شركة كوبارت | دالاس - تكساس", date:"2024/08/13", style:"danger" },
+      { num:14,type:"ok",  title:"سجل ملكية — التسجيل الأول في الأردن", desc:"إدارة ترخيص السواقين والمركبات - الأردن", date:"2025/01/18", style:"" },
+      { num:15,type:"",    title:"سجل استدعاء للصيانة — 25V744000", desc:"منع الانزلاق الخلفي | تويوتا موديلات 2022-2026", date:"2025/10/30", style:"warning" }
+    ],
+    sections: [
+      {
+        id: "exterior", icon: "🚗", title: "الهيكل الخارجي",
+        sub: "فحص شامل لجميع أجزاء الهيكل الخارجي",
+        status: "warn", badge: "⚠ يحتاج إصلاح",
+        intro: "يقدم أوتوسكور تقييم وفحص شامل ودقيق لهيكل السيارة الخارجي. يتم إجراء الفحص باستخدام: الفحص النظري المتخصص، قياس سماكة الدهان والمعجون، والذكاء الصناعي.",
+        items: [
+          { name:"الصدام الأمامي", status:"bad", notes:["بحاجة إلى إصلاح الصدام الأمامي"], has_img:true },
+          { name:"الصدام الخلفي", status:"bad", notes:["بحاجة إلى إصلاح الصدام الخلفي"] },
+          { name:"جناح خلفي يمين", status:"warn", notes:["يوجد خدوش بالجناح الخلفي اليمين"], has_img:true },
+          { name:"جناح أمامي يمين", status:"ok", notes:[] },
+          { name:"جناح خلفي يسار", status:"ok", notes:[] },
+          { name:"جناح أمامي يسار", status:"ok", notes:[] },
+          { name:"باب خلفي يمين", status:"bad", notes:["بحاجة إلى إصلاح الباب الخلفي اليمين"], has_img:true },
+          { name:"باب أمامي يمين", status:"warn", notes:["بحاجة لإصلاح يد الباب الأمامي اليمين"] },
+          { name:"باب أمامي يسار", status:"bad", notes:["بحاجة إلى إصلاح الباب الأمامي اليسار"] },
+          { name:"باب خلفي يسار", status:"ok", notes:[] },
+          { name:"غطاء المحرك", status:"warn", notes:["بحاجة إلى إصلاح غطاء المحرك"], has_img:true },
+          { name:"السقف", status:"ok", notes:[] },
+          { name:"الزجاج الأمامي", status:"ok", notes:[] },
+          { name:"الزجاج الخلفي", status:"ok", notes:[] },
+          { name:"المرآة اليمين", status:"ok", notes:[] },
+          { name:"المرآة اليسار", status:"ok", notes:[] }
+        ],
+        extra_notes: ["نقرات خارجية خفيفة", "بحاجة إلى صيانة واقيات الوحل السفلية", "يوجد دهان غير دهان المصنع", "بحاجة لعيار وصلاح مقدمة المركبة"]
+      },
+      {
+        id: "chassis", icon: "🔩", title: "الشاصي والهيكل",
+        sub: "قياسات الشاصي والهيكل الداخلي بنظام CCM العالمي",
+        status: "warn", badge: "⚠ يحتاج انتباه",
+        intro: "نقوم بتقييم وفحص الشاصي والهيكل الداخلي للسيارة اعتماداً على القياسات والأبعاد الأصلية والتأكد من عدم وجود نقاط لحام على المفاصل الرئيسية.",
+        items: [
+          { name:"قياسات الشاصي الأمامي اليمين", status:"warn", notes:["ضربة متوسطة في الشاصي الأمامي اليمين غير مصلحة لا تؤثر على الأداء"], has_img:true },
+          { name:"قياسات الشاصي الأمامي اليسار", status:"ok", notes:[] },
+          { name:"قياسات الشاصي الخلفي اليمين", status:"ok", notes:[] },
+          { name:"قياسات الشاصي الخلفي اليسار", status:"ok", notes:[] },
+          { name:"الهيكل الأمامي", status:"bad", notes:["ضربة في مقدمة المركبة مع الهيكل الرئيسي من الجهة اليمين"], has_img:true },
+          { name:"الهيكل الخلفي", status:"bad", notes:["ضربة في مؤخرة المركبة مع الجناح الخلفي اليمين"] },
+          { name:"الهيكل السفلي", status:"ok", notes:[] },
+          { name:"الهيكل العلوي", status:"warn", notes:["ضربة خفيفة في سقف المركبة"] },
+          { name:"هيكل الجنب اليمين", status:"bad", notes:["ضربة في الهيكل الرئيسي للباب الأمامي اليمين من الأمام"] },
+          { name:"هيكل الجنب الشمال", status:"ok", notes:[] },
+          { name:"وجود الصدأ", status:"ok", notes:[] }
+        ]
+      },
+      {
+        id: "engine", icon: "⚙️", title: "المحرك وناقل الحركة",
+        sub: "فحص شامل للمحرك الهجين والبطارية الرئيسية بتقنية Bosch",
+        status: "bad", badge: "❌ مشاكل",
+        intro: "أوتوسكور متخصص بفحص السيارات الكهربائية والهجينة. يرجع الفضل إلى الخبراء والمهندسين المختصين والأجهزة والتقنيات المعتمدة من شركة Bosch الألمانية.",
+        items: [
+          { name:"كفاءة وأداء المحرك", status:"bad", notes:["يوجد فك مسبق وإصلاح في المحرك","ضرب في برميل الاكزوزت الخلفي","يوجد ضرب في تنك البنزين","كسر ولحام في المحرك"], has_img:true },
+          { name:"نظام الهايبرد", status:"ok", notes:[] },
+          { name:"البطارية الرئيسية", status:"ok", notes:["بطارية الهايبرد نيكل أصلي / إنتاج 2024"], has_img:true },
+          { name:"اختبار أعطال المحرك بالأجهزة", status:"ok", notes:[] },
+          { name:"فحص تهريب الزيوت", status:"ok", notes:[] },
+          { name:"اختبار أعطال الجير بالأجهزة", status:"ok", notes:[] },
+          { name:"اختبار غيارات وأداء الجير", status:"ok", notes:[] }
+        ]
+      },
+      {
+        id: "electrical", icon: "⚡", title: "المجموعة الكهربائية",
+        sub: "فحص دقيق للأنظمة والأجزاء الكهربائية بتقنية Bosch",
+        status: "warn", badge: "⚠ ملاحظة",
+        intro: "أوتوسكور يقوم بعمل فحص دقيق ومتخصص للأنظمة والأجزاء الكهربائية بالأجهزة والتقنيات المعتمدة من شركة Bosch الألمانية.",
+        items: [
+          { name:"الضوء الأمامي اليمين", status:"warn", notes:["الكشافات غير أصلية"], has_img:true },
+          { name:"الضوء الأمامي اليسار", status:"ok", notes:[] },
+          { name:"الضوء الخلفي اليمين", status:"ok", notes:[] },
+          { name:"الضوء الخلفي اليسار", status:"ok", notes:[] },
+          { name:"بطارية التشغيل 12 فولت", status:"ok", notes:[], has_img:true },
+          { name:"شحن بطارية 12 فولت", status:"ok", notes:[] },
+          { name:"الشاشة / الراديو الأصلي", status:"ok", notes:[], has_img:true },
+          { name:"السماعات", status:"ok", notes:[] },
+          { name:"المساحات الأمامية", status:"ok", notes:[] },
+          { name:"إختبار عمل النوافذ", status:"ok", notes:[] },
+          { name:"إختبار عمل فتحة السقف", status:"ok", notes:[] },
+          { name:"إختبار عمل الكراسي الكهربائية", status:"ok", notes:[] }
+        ]
+      },
+      {
+        id: "safety", icon: "🛑", title: "المكابح والسلامة",
+        sub: "فحص أنظمة السلامة والبريكات والأكياس الهوائية",
+        status: "warn", badge: "⚠ ملاحظة",
+        intro: "السلامة أولاً، لذلك نحرص في أوتوسكور على فحص جميع أجزاء أنظمة السلامة العامة والبريكات والأكياس الهوائية بشكل دقيق.",
+        items: [
+          { name:"وجود جميع الأكياس الهوائية", status:"ok", notes:[] },
+          { name:"بريك / ديسك أمامي يمين", status:"ok", notes:[], has_img:true },
+          { name:"بريك / ديسك أمامي يسار", status:"ok", notes:[] },
+          { name:"بريك / ديسك خلفي يمين", status:"ok", notes:[] },
+          { name:"بريك / ديسك خلفي يسار", status:"ok", notes:[] },
+          { name:"عمق الفرزة الأمامي", status:"ok", notes:[] },
+          { name:"عمق الفرزة الخلفي", status:"ok", notes:[] },
+          { name:"عمر الإطارات أقل من 4 سنوات", status:"ok", notes:["إطارات إنتاج 2024"], has_img:true },
+          { name:"نظام مانع الانزلاق", status:"warn", notes:["بحاجة إلى صيانة Brake switch (كود)"] },
+          { name:"تفقد براغي العجلات", status:"ok", notes:[] },
+          { name:"أحزمة الأمان الأمامية", status:"ok", notes:[] }
+        ]
+      }
+    ],
+    bosch_results: [
+      { id:1, name:"Brake force diff. service brake",      measured:"—", limit:"≤ 25%", pass:true },
+      { id:2, name:"Brake force diff. parking brake",      measured:"—", limit:"≤ 25%", pass:true },
+      { id:3, name:"Total braking efficiency service brake",measured:"—", limit:"≥ 50%", pass:true },
+      { id:4, name:"Total braking efficiency parking brake",measured:"—", limit:"≥ 16%", pass:true }
+    ],
+    all_notes: [
+      { type:"bad",  text:"بحاجة إلى إصلاح الباب الأمامي اليسار" },
+      { type:"bad",  text:"بحاجة إلى إصلاح الصدام الخلفي" },
+      { type:"warn", text:"يوجد خدوش بالجناح الخلفي اليمين" },
+      { type:"bad",  text:"بحاجة إلى إصلاح الباب الخلفي اليمين" },
+      { type:"warn", text:"بحاجة لإصلاح يد الباب الأمامي اليمين" },
+      { type:"bad",  text:"بحاجة إلى إصلاح غطاء المحرك" },
+      { type:"bad",  text:"بحاجة إلى إصلاح الصدام الأمامي" },
+      { type:"warn", text:"بحاجة إلى صيانة واقيات الوحل السفلية" },
+      { type:"warn", text:"يوجد دهان غير دهان المصنع" },
+      { type:"warn", text:"بحاجة لعيار وصلاح مقدمة المركبة" },
+      { type:"bad",  text:"ضربة في مقدمة المركبة مع الهيكل الرئيسي من اليمين" },
+      { type:"bad",  text:"ضربة في مؤخرة المركبة مع الجناح الخلفي اليمين" },
+      { type:"bad",  text:"ضربة في الهيكل الرئيسي للباب الأمامي اليمين من الأمام" },
+      { type:"warn", text:"ضربة خفيفة في سقف المركبة" },
+      { type:"warn", text:"ضربة متوسطة في الشاصي الأمامي اليمين لا تؤثر على الأداء" },
+      { type:"bad",  text:"يوجد فك مسبق وإصلاح في المحرك" },
+      { type:"bad",  text:"ضرب في برميل الاكزوزت الخلفي" },
+      { type:"bad",  text:"يوجد ضرب في تنك البنزين" },
+      { type:"bad",  text:"كسر ولحام في المحرك" },
+      { type:"warn", text:"يوجد ضرب في الدنجل الأمامي" },
+      { type:"bad",  text:"بحاجة إلى تبديل كفات أمامية" },
+      { type:"bad",  text:"بحاجة إلى إصلاح مجموعة الستيرنج" },
+      { type:"warn", text:"الكشافات غير أصلية" },
+      { type:"warn", text:"بحاجة إلى صيانة Brake switch (كود)" },
+      { type:"warn", text:"إطارات إنتاج 2024" },
+      { type:"warn", text:"بحاجة لتعديل المقود" },
+      { type:"warn", text:"نقرات خارجية خفيفة" },
+      { type:"warn", text:"لم يتم التأكد من قراءة العداد الحالية" }
+    ]
+  };
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const d = window.__REPORT_DATA__;
+
+function statusClass(s) {
+  return s === 'ok' ? 'ok' : s === 'warn' ? 'warn' : 'bad';
+}
+function statusIcon(s) {
+  return s === 'ok' ? '✔' : s === 'warn' ? '⚠' : '❌';
+}
+function ciClass(s) {
+  return s === 'ok' ? 'ci-ok' : s === 'warn' ? 'ci-warn' : 'ci-bad';
+}
+function gradeClass(g) {
+  const map = { 'A+':'A','A':'A','B+':'Bp','B':'B','C':'C','D':'D','F':'F' };
+  return 'grade-' + (map[g] || 'C');
+}
+function badgeClass(s) {
+  return s === 'ok' ? 'sb-ok' : s === 'warn' ? 'sb-warn' : 'sb-bad';
+}
+function stClass(s) {
+  return s === 'ok' ? 'st-ok' : s === 'warn' ? 'st-warn' : 'st-bad';
+}
+function ndClass(t) {
+  return t === 'ok' ? 'nd-ok' : t === 'warn' ? 'nd-warn' : 'nd-bad';
+}
+
+// ─── Page counter ─────────────────────────────────────────────────────────────
+let pageNum = 0;
+const totalPages = 1 + d.sections.length + 1 + (d.gallery && d.gallery.length ? 1 : 0); // cover + sections + notes + gallery
+
+function footerHTML(title) {
+  pageNum++;
+  return `<div class="page-foot">
+    <div class="foot-brand">auto<em>score</em></div>
+    <div>${title || ''}</div>
+    <div>الصفحة ${pageNum} من ${totalPages} | رقم التقرير: ${d.report_number}</div>
+  </div>`;
+}
+
+// ─── SVG Gauge ────────────────────────────────────────────────────────────────
+function gaugeHTML(pct) {
+  const R = 50, cx = 60, cy = 60;
+  const startAngle = -210, endAngle = 30;
+  const totalArc = endAngle - startAngle;
+  const sweepArc = (pct / 100) * totalArc;
+  const fillEnd = startAngle + sweepArc;
+
+  function polarToXY(angle, r) {
+    const rad = (angle - 90) * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  }
+  function arcPath(a1, a2, r) {
+    const s = polarToXY(a1, r), e = polarToXY(a2, r);
+    const la = (a2 - a1) > 180 ? 1 : 0;
+    return `M ${s.x} ${s.y} A ${r} ${r} 0 ${la} 1 ${e.x} ${e.y}`;
+  }
+
+  const color = pct >= 75 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
+
+  return `<svg viewBox="0 0 120 75" width="120" height="75">
+    <path d="${arcPath(startAngle, endAngle, R)}" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="8" stroke-linecap="round"/>
+    <path d="${arcPath(startAngle, fillEnd, R)}" fill="none" stroke="${color}" stroke-width="8" stroke-linecap="round"/>
+    <text x="${cx}" y="${cy+8}" text-anchor="middle" fill="white" font-weight="900" font-size="18" font-family="Cairo,sans-serif">${pct}%</text>
+  </svg>`;
+}
+
+// ─── Build check card HTML ────────────────────────────────────────────────────
+function checkCard(item) {
+  const cls = statusClass(item.status);
+  const noteTag = item.status === 'bad' ? 'check-note-red' : 'check-note';
+  let notes = '';
+  if (item.notes && item.notes.length) {
+    notes = item.notes.map(n => `<div class="${noteTag}">● ${n}</div>`).join('');
+  }
+  // Build images grid — clickable to share page
+  let imgHtml = '';
+  if (item.images && item.images.length) {
+    const shareUrl = d.share_url || '#';
+    const cols = Math.min(item.images.length, 2);
+    const imgs = item.images.map(src =>
+      `<a href="${shareUrl}" target="_blank" style="display:block;border-radius:6px;overflow:hidden;border:1px solid var(--border)">` +
+      `<img src="${src}" style="width:100%;height:68px;object-fit:cover;display:block"></a>`
+    ).join('');
+    imgHtml = `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:4px;margin-top:6px">${imgs}</div>`;
+  } else if (item.has_img) {
+    imgHtml = `<div class="img-placeholder">📸</div>`;
+  }
+  return `<div class="check-card ${cls}">
+    <div class="check-top">
+      <div class="check-ic ${ciClass(item.status)}">${statusIcon(item.status)}</div>
+      <div class="check-name">${item.name}</div>
+    </div>
+    ${notes}${imgHtml}
+  </div>`;
+}
+
+// ─── Build section page HTML ──────────────────────────────────────────────────
+function sectionPage(sec) {
+  const items = sec.items.map(checkCard).join('');
+  const extra = sec.extra_notes && sec.extra_notes.length
+    ? `<div style="margin-top:10px;background:#fffbeb;border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:9px 12px">
+        <div style="font-weight:700;font-size:10px;margin-bottom:4px;color:#92400e">⚠ ملاحظات إضافية</div>
+        <div style="font-size:9.5px;color:#92400e;line-height:2">${sec.extra_notes.map(n=>'● '+n).join(' &nbsp;|&nbsp; ')}</div>
+       </div>`
+    : '';
+
+  return `<div class="page">
+    <div class="top-bar">
+      <div class="brand">auto<em>score</em></div>
+      <div style="color:#94a3b8;font-size:10px">${d.vehicle.name}</div>
+      <div class="top-meta">رقم التقرير: <strong>${d.report_number}</strong></div>
+    </div>
+    <div class="sec-header">
+      <div class="sec-icon-box">${sec.icon}</div>
+      <div class="sec-title-wrap">
+        <div class="sec-title">${sec.title}</div>
+        <div class="sec-sub">${sec.sub}</div>
+      </div>
+      <span class="sec-badge ${badgeClass(sec.status)}">${sec.badge}</span>
+    </div>
+    <div class="sec-body">
+      <div class="sec-intro">${sec.intro}</div>
+      <div class="checks-grid">${items}</div>
+      ${extra}
+    </div>
+    ${footerHTML(sec.title)}
+  </div>`;
+}
+
+// ─── Render document ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  const root = document.getElementById('report-root');
+  let html = '';
+
+  // ── PAGE 1: COVER ──────────────────────────────────────────────────────────
+  pageNum++;
+  const ovGrid = d.sections_overview.map(o => `
+    <div class="ov-item">
+      <div class="ov-icon">${o.icon}</div>
+      <div class="ov-name">${o.name}</div>
+      <div class="ov-status ${stClass(o.status)}">${statusIcon(o.status)}</div>
+    </div>`).join('');
+
+  html += `<div class="page">
+    <div class="top-bar">
+      <div class="brand">auto<em>score</em></div>
+      <div style="color:var(--orange);font-weight:800;font-size:10px">الفحص الشامل PREMIUM</div>
+      <div class="top-meta">رقم التقرير: <strong>${d.report_number}</strong></div>
+    </div>
+
+    <div class="cover-hero">
+      <div class="cover-head">
+        <div>
+          <div style="color:rgba(255,255,255,.4);font-size:9px;margin-bottom:3px">التاريخ: ${d.date}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.7)">المركز: <strong style="color:white">${d.center_name}</strong></div>
+        </div>
+        <div class="premium-tag">PREMIUM 200+</div>
+      </div>
+
+      <div class="car-section">
+        <div class="car-image-wrap">
+          ${d.vehicle.image
+            ? `<img src="${d.vehicle.image}" alt="car">`
+            : `<div class="car-image-placeholder">🚗</div>`}
+        </div>
+        <div class="car-details">
+          <div class="car-name">${d.vehicle.name}</div>
+          <div class="car-sub">${d.vehicle.sub}</div>
+          <div class="car-chips">
+            <div class="car-chip"><div class="car-chip-lbl">رقم الشاصي</div><div class="car-chip-val" style="font-family:monospace;font-size:8px">${d.vehicle.vin}</div></div>
+            <div class="car-chip"><div class="car-chip-lbl">رقم اللوحة</div><div class="car-chip-val">${d.vehicle.plate}</div></div>
+            <div class="car-chip"><div class="car-chip-lbl">العداد</div><div class="car-chip-val">${d.vehicle.mileage}</div></div>
+            <div class="car-chip"><div class="car-chip-lbl">المحرك</div><div class="car-chip-val">${d.vehicle.engine}</div></div>
+            <div class="car-chip"><div class="car-chip-lbl">اللون</div><div class="car-chip-val">${d.vehicle.color}</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="score-panel">
+        <div>${gaugeHTML(d.score_pct)}</div>
+        <div class="score-info">
+          <div class="score-title">النسبة الإجمالية</div>
+          <div class="score-number">${d.score_pct}<span>%</span></div>
+          <div class="score-bar-bg"><div class="score-bar-fill" style="width:${d.score_pct}%"></div></div>
+          <div class="score-label">نتيجة الفحص الشامل</div>
+        </div>
+        <div class="grade-badge ${gradeClass(d.final_grade)}">${d.final_grade}</div>
+        <div class="result-col">
+          <div class="result-pill ${d.result_pass ? 'pill-pass' : 'pill-fail'}">${d.result_pass ? '✓ ناجحة' : '✗ مرفوضة'}</div>
+          <div class="mkt-lbl">القيمة السوقية</div>
+          <div class="mkt-val">${d.market_value} ${d.currency}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:12px 18px 4px;flex:1">
+      <div style="font-weight:800;font-size:12px;margin-bottom:8px;color:var(--dark)">📋 نقاط الفحص</div>
+      <div class="overview-grid">${ovGrid}</div>
+    </div>
+
+    <div style="padding:0 18px 10px;display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:6px">
+      <div style="background:var(--light);border-radius:8px;padding:9px 12px;border:1px solid var(--border)">
+        <div style="font-size:8px;color:var(--gray);margin-bottom:2px">اسم مالك السيارة</div>
+        <div style="font-weight:700;font-size:11px">${d.owner_name}</div>
+      </div>
+      <div style="background:var(--light);border-radius:8px;padding:9px 12px;border:1px solid var(--border)">
+        <div style="font-size:8px;color:var(--gray);margin-bottom:2px">اسم مشتري السيارة</div>
+        <div style="font-weight:700;font-size:11px">${d.buyer_name}</div>
+      </div>
+    </div>
+
+    <div class="page-foot">
+      <div class="foot-brand">auto<em>score</em></div>
+      <div></div>
+      <div>الصفحة ${pageNum} من ${totalPages} | رقم التقرير: ${d.report_number}</div>
+    </div>
+  </div>`;
+
+  // ── SECTION PAGES ──────────────────────────────────────────────────────────
+  d.sections.forEach(sec => {
+    html += sectionPage(sec);
+  });
+
+  // ── ALL NOTES PAGE ─────────────────────────────────────────────────────────
+  if (d.all_notes && d.all_notes.length) {
+    html += `<div class="page">
+      <div class="top-bar">
+        <div class="brand">auto<em>score</em></div>
+        <div style="color:#94a3b8;font-size:10px">${d.vehicle.name}</div>
+        <div class="top-meta">رقم التقرير: <strong>${d.report_number}</strong></div>
+      </div>
+      <div class="sec-header">
+        <div class="sec-icon-box">📋</div>
+        <div class="sec-title-wrap">
+          <div class="sec-title">جميع الملاحظات</div>
+          <div class="sec-sub">ملخص شامل لجميع المشاكل والملاحظات</div>
+        </div>
+        <div style="background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.25);padding:3px 12px;border-radius:20px;font-size:10px;font-weight:700">${d.all_notes.length} ملاحظة</div>
+      </div>
+      <div class="notes-wrap">
+        <div class="notes-grid">
+          ${d.all_notes.map(n => `
+            <div class="note-row">
+              <div class="note-dot ${ndClass(n.type)}">${n.type==='ok'?'✔':n.type==='warn'?'⚠':'❌'}</div>
+              <div class="note-text">${n.text}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+      ${footerHTML('جميع الملاحظات')}
+    </div>`;
+  }
+
+  // ── GALLERY PAGE ─────────────────────────────────────────────────────────────
+  if (d.gallery && d.gallery.length) {
+    pageNum++;
+    const shareUrl = d.share_url || '#';
+    const thumbs = d.gallery.map(img =>
+      `<a href="${shareUrl}" target="_blank" class="photo-thumb" style="display:block">` +
+      `<img src="${img.src}" alt="${img.caption}" title="${img.caption}" style="width:100%;height:100%;object-fit:cover">` +
+      `</a>`
+    ).join('');
+
+    html += `<div class="page">
+      <div class="top-bar">
+        <div class="brand">auto<em>score</em></div>
+        <div style="color:#94a3b8;font-size:10px">${d.vehicle.name}</div>
+        <div class="top-meta">رقم التقرير: <strong>${d.report_number}</strong></div>
+      </div>
+      <div class="sec-header">
+        <div class="sec-icon-box">📷</div>
+        <div class="sec-title-wrap">
+          <div class="sec-title">صور الفحص</div>
+          <div class="sec-sub">${d.gallery.length} صورة — اضغط على أي صورة لعرض التقرير الكامل</div>
+        </div>
+        <div style="background:rgba(245,158,11,.15);color:#fde68a;border:1px solid rgba(245,158,11,.25);padding:3px 12px;border-radius:20px;font-size:10px;font-weight:700">
+          ${d.gallery.length} صورة
+        </div>
+      </div>
+      <div class="photos-grid" style="grid-template-columns:repeat(4,1fr)">
+        ${thumbs}
+      </div>
+      <div style="padding:8px 18px;font-size:9px;color:var(--gray);text-align:center;border-top:1px solid var(--border)">
+        🔗 لعرض جميع الصور بجودة عالية تفضل بزيارة: <strong>${d.share_url || ''}</strong>
+      </div>
+      <div class="page-foot">
+        <div class="foot-brand">auto<em>score</em></div>
+        <div>صور الفحص</div>
+        <div>الصفحة ${pageNum} من ${totalPages} | رقم التقرير: ${d.report_number}</div>
+      </div>
+    </div>`;
+  }
+
+  root.innerHTML = html;
+});
+</script>
+</head>
+<body>
+  <div id="report-root"></div>
+</body>
+</html>

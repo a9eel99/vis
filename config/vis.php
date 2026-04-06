@@ -22,4 +22,7 @@ return [
         'notes_ar' => env('COMPANY_PDF_NOTES_AR', ''),
         'notes_en' => env('COMPANY_PDF_NOTES_EN', ''),
     ],
+    'puppeteer' => [
+    'node_path' => env('NODE_PATH', 'node'),
+],
 ];

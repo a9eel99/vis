@@ -1,0 +1,12 @@
+{
+  "name": "vis-report-generator",
+  "version": "1.0.0",
+  "description": "Vehicle Inspection Report PDF Generator",
+  "main": "generate-report.js",
+  "scripts": {
+    "test": "node generate-report.js --data=sample-data.json --output=test-output.pdf"
+  },
+  "dependencies": {
+    "puppeteer": "^21.0.0"
+  }
+}

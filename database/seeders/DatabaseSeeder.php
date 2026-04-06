@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             CarMakesAndColorsSeeder::class,
             TraditionalTemplateSeeder::class,
             TraditionalInspectionSeeder::class,
+            AutoScoreInspectionSeeder::class,
             DemoDataSeeder::class,
         ]);
     }

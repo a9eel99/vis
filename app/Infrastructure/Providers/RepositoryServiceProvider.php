@@ -26,6 +26,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(VehicleRepositoryInterface::class, VehicleRepository::class);
         $this->app->bind(InspectionRepositoryInterface::class, InspectionRepository::class);
         $this->app->bind(TemplateRepositoryInterface::class, TemplateRepository::class);
+        $this->app->singleton(\App\Application\Services\PuppeteerReportService::class);
     }
 
     public function boot(): void

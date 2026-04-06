@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Report;
 
 use App\Application\Services\InspectionService;
-use App\Application\Services\ReportService;
+use App\Application\Services\PuppeteerReportService;
 use App\Domain\Models\Inspection;
 use App\Http\Controllers\Controller;
 
 class ReportController extends Controller
 {
     public function __construct(
-        private ReportService $reportService,
+        private PuppeteerReportService $reportService,
         private InspectionService $inspectionService,
     ) {}
 
@@ -18,7 +18,8 @@ class ReportController extends Controller
     {
         try {
             $inspection = $this->inspectionService->find($id);
-            return $this->reportService->downloadInspectionPdf($inspection);
+            $lang = request('lang', app()->getLocale());
+            return $this->reportService->downloadPdf($inspection, $lang);
         } catch (\Throwable $e) {
             report($e);
             return back()->with('error',
@@ -30,7 +31,7 @@ class ReportController extends Controller
     {
         try {
             $inspection = $this->inspectionService->find($id);
-            return $this->reportService->streamInspectionPdf($inspection);
+            return $this->reportService->viewPdf($inspection);
         } catch (\Throwable $e) {
             report($e);
             return back()->with('error',
@@ -106,7 +107,8 @@ class ReportController extends Controller
                 ->where('status', 'completed')
                 ->firstOrFail();
 
-            return $this->reportService->downloadInspectionPdf($inspection);
+            $lang = request()->query('lang', app()->getLocale());
+            return $this->reportService->downloadPdf($inspection, $lang);
         } catch (\Throwable $e) {
             report($e);
             abort(500, app()->getLocale() === 'ar' ? 'خطأ في إنشاء التقرير' : 'Error generating report');
