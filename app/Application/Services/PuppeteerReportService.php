@@ -58,7 +58,7 @@ class PuppeteerReportService
         $outputStr = '';
         $exitCode  = -1;
         if (function_exists('proc_open')) {
-            $descriptors = [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+            $descriptors = [0 => ['pipe','r'], 1 => ['pipe','w'], 2 => ['pipe','w']];
             $process = proc_open($command, $descriptors, $pipes);
             if (is_resource($process)) {
                 fclose($pipes[0]);
@@ -112,7 +112,7 @@ class PuppeteerReportService
 
         return response()->download($pdfPath, $filename, [
             'Content-Type' => 'application/pdf',
-        ]);
+        ])->deleteFileAfterSend(true);
     }
 
     /**
@@ -144,10 +144,8 @@ class PuppeteerReportService
         ]);
 
         // Company info
-        $companyName = Setting::get(
-            $isAr ? 'company_name_ar' : 'company_name_en',
-            config('vis.company.' . ($isAr ? 'name_ar' : 'name_en'), 'VIS')
-        );
+        $companyName = Setting::get($isAr ? 'company_name_ar' : 'company_name_en',
+            config('vis.company.' . ($isAr ? 'name_ar' : 'name_en'), 'VIS'));
 
         // Vehicle image
         $vehicleImage = null;
@@ -158,16 +156,7 @@ class PuppeteerReportService
                 $vData = file_get_contents($imgPath);
                 if (strlen($vData) > 150000 && function_exists('imagecreatefromstring')) {
                     $im = @imagecreatefromstring($vData);
-                    if ($im) {
-                        ob_start();
-                        imagejpeg($im, null, 55);
-                        $c = ob_get_clean();
-                        imagedestroy($im);
-                        if ($c) {
-                            $vData = $c;
-                            $mime = 'image/jpeg';
-                        }
-                    }
+                    if ($im) { ob_start(); imagejpeg($im, null, 55); $c = ob_get_clean(); imagedestroy($im); if ($c) { $vData = $c; $mime = 'image/jpeg'; } }
                 }
                 $vehicleImage = 'data:' . $mime . ';base64,' . base64_encode($vData);
             }
@@ -176,7 +165,7 @@ class PuppeteerReportService
         // Grade
         $gradeStr   = is_object($inspection->grade) ? $inspection->grade->value : ($inspection->grade ?? '');
         $gradeLabel = $inspection->grade_label ?? strtoupper($gradeStr ?: 'C');
-        $gradeLetter = match (true) {
+        $gradeLetter = match(true) {
             $inspection->percentage >= 90 => 'A',
             $inspection->percentage >= 75 => 'B',
             $inspection->percentage >= 60 => 'C',
@@ -272,8 +261,8 @@ class PuppeteerReportService
         return [
             'report_number'      => $inspection->reference_number,
             'date'               => $inspection->completed_at
-                ? $inspection->completed_at->format('Y-m-d')
-                : now()->format('Y-m-d'),
+                                        ? $inspection->completed_at->format('Y-m-d')
+                                        : now()->format('Y-m-d'),
             'center_name'        => $companyName,
             'center_logo'        => null,
             'result_pass'        => !$inspection->has_critical_failure,
@@ -284,13 +273,13 @@ class PuppeteerReportService
             'vehicle'            => [
                 'image'   => $vehicleImage,
                 'name'    => trim(($inspection->vehicle->year ?? '') . ' '
-                    . ($inspection->vehicle->make ?? '') . ' '
-                    . ($inspection->vehicle->model ?? '')),
+                                . ($inspection->vehicle->make ?? '') . ' '
+                                . ($inspection->vehicle->model ?? '')),
                 'sub'     => ($inspection->vehicle->fuel_type ?? '') . ' / ' . ($inspection->vehicle->color ?? ''),
                 'vin'     => $inspection->vehicle->vin ?? '—',
                 'plate'   => $inspection->vehicle->license_plate ?? '—',
                 'mileage' => $inspection->vehicle->mileage
-                    ? number_format($inspection->vehicle->mileage) . ' KM' : '—',
+                                ? number_format($inspection->vehicle->mileage) . ' KM' : '—',
                 'engine'  => $inspection->vehicle->engine_size ?? ($inspection->vehicle->fuel_type ?? '—'),
                 'color'   => $inspection->vehicle->color ?? '—',
                 'year'    => $inspection->vehicle->year ?? '—',
@@ -298,7 +287,7 @@ class PuppeteerReportService
                 'model'   => $inspection->vehicle->model ?? '—',
             ],
             'owner_name'         => $inspection->vehicle?->owner_name
-                ?? $inspection->vehicle?->customer?->name ?? '—',
+                                        ?? $inspection->vehicle?->customer?->name ?? '—',
             'buyer_name'         => $inspection->vehicle?->customer?->name ?? '—',
             'inspector_name'     => $inspection->inspector?->name ?? '—',
             'sections_overview'  => $sectionsOverview,
@@ -307,8 +296,8 @@ class PuppeteerReportService
             'bosch_results'      => [],
             'all_notes'          => $allNotes,
             'share_url'          => $inspection->share_token
-                ? url('/share/' . $inspection->share_token)
-                : null,
+                                        ? url('/share/' . $inspection->share_token)
+                                        : null,
             'gallery'            => $this->buildGallery($inspection),
         ];
     }
@@ -336,16 +325,7 @@ class PuppeteerReportService
             $gData = file_get_contents($fullPath);
             if (strlen($gData) > 150000 && function_exists('imagecreatefromstring')) {
                 $im = @imagecreatefromstring($gData);
-                if ($im) {
-                    ob_start();
-                    imagejpeg($im, null, 50);
-                    $c = ob_get_clean();
-                    imagedestroy($im);
-                    if ($c) {
-                        $gData = $c;
-                        $mime = 'image/jpeg';
-                    }
-                }
+                if ($im) { ob_start(); imagejpeg($im, null, 50); $c = ob_get_clean(); imagedestroy($im); if ($c) { $gData = $c; $mime = 'image/jpeg'; } }
             }
             $gallery[] = [
                 'src'     => 'data:' . $mime . ';base64,' . base64_encode($gData),
@@ -366,7 +346,7 @@ class PuppeteerReportService
             'محرك'     => '⚙️',
             'engine'   => '⚙️',
             'كهرباء'   => '⚡',
-            'electrical' => '⚡',
+            'electrical'=> '⚡',
             'تكييف'    => '❄️',
             'brakes'   => '🛑',
             'مكابح'    => '🛑',
@@ -389,7 +369,7 @@ class PuppeteerReportService
 
     private function sectionBadge(string $status, bool $isAr): string
     {
-        return match ($status) {
+        return match($status) {
             'ok'   => $isAr ? '✔ جيد' : '✔ Good',
             'warn' => $isAr ? '⚠ يحتاج انتباه' : '⚠ Attention',
             'bad'  => $isAr ? '❌ مشاكل' : '❌ Issues',
